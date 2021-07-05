@@ -1,8 +1,6 @@
 package api
 
 import (
-	"fmt"
-
 	"github.com/aa-service/time-table/options"
 	v1 "github.com/brugnara/storeroom/api/v1"
 	"github.com/gin-gonic/gin"
@@ -18,13 +16,7 @@ func Mount(router *gin.RouterGroup,
 		"v1": router.Group("v1"),
 	}
 
-	v1.Mount(groups["v1"], opts, Auth(opts))
+	v1.Mount(groups["v1"], opts)
 
 	return
-}
-func Auth(opts *options.Options) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		fmt.Println("running auth func")
-		c.Next()
-	}
 }
