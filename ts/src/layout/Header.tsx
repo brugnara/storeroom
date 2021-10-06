@@ -1,12 +1,13 @@
 import React from 'react';
 
-import Navbar from 'react-bootstrap/Navbar';
 import { connect } from 'react-redux';
 import store, { IState } from '../Store';
 import { boundMethod } from 'autobind-decorator';
-import Nav from 'react-bootstrap/Nav';
 import { IUser } from '../reducers/user';
 import {Link} from 'react-router-dom';
+import { Container, Navbar } from 'react-bulma-components';
+import { SearchBar } from '../components/SearchBar';
+import { CallToAction } from '../components/CallToAction';
 
 export interface IHeaderProps {
     user: IUser;
@@ -30,32 +31,43 @@ export class HeaderComponent extends React.Component<IHeaderProps> {
             link = <Link to='/me'>{this.props.user.name}</Link>;
         }
 
-        return <Nav.Item>
-            <Nav.Link as='span'>
-                {link}
-            </Nav.Link>
-        </Nav.Item>;
+        return <Navbar.Item renderAs='span'>
+            {link}
+        </Navbar.Item>;
+    }
+
+    private renderMenu(): React.ReactNode {
+        return (
+            <Container>
+                <Navbar>
+                    <Navbar.Brand>
+                        <Navbar.Item href="/">
+                            SR
+                        </Navbar.Item>
+                    </Navbar.Brand>
+                    <Navbar.Menu className="ml-auto ">
+                        <Navbar.Container>
+                            <Navbar.Item renderAs='span'>
+                                <Link to='/items'>Items</Link>
+                            </Navbar.Item>
+                            <Navbar.Item renderAs='span'>
+                                <Link to='/privacy'>Privacy</Link>
+                            </Navbar.Item>
+                            {this.renderUserInfo()}
+                        </Navbar.Container>
+                    </Navbar.Menu>
+                </Navbar>
+            </Container>
+
+        );
     }
 
     public render(): React.ReactNode {
-        return (
-            <Navbar bg="dark" variant="dark">
-                <Navbar.Brand href="/">StoreRoom</Navbar.Brand>
-                <Nav className="ml-auto ">
-                    <Nav.Item>
-                        <Nav.Link as='span'>
-                            <Link to='/items'>Items</Link>
-                        </Nav.Link>
-                    </Nav.Item>
-                    <Nav.Item>
-                        <Nav.Link as='span'>
-                            <Link to='/privacy'>Privacy</Link>
-                        </Nav.Link>
-                    </Nav.Item>
-                    {this.renderUserInfo()}
-                </Nav>
-            </Navbar>
-        );
+        return <>
+            {this.renderMenu()}
+            <SearchBar />
+            <CallToAction />
+        </>;
     }
 }
 

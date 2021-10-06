@@ -7,7 +7,7 @@ import {
     BrowserRouter as Router,
 } from 'react-router-dom';
 
-import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bulma/css/bulma.min.css';
 import ScrollToTop from './layout/ScrollToTop';
 
 export class App extends React.PureComponent {
