@@ -7,6 +7,7 @@ import (
 	"github.com/aa-service/time-table/options"
 	"github.com/brugnara/storeroom/api"
 	"github.com/brugnara/storeroom/database"
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -24,6 +25,13 @@ func main() {
 	}
 
 	router := gin.Default()
+
+	router.Use(static.Serve("/", static.LocalFile("./ts/build", false)))
+
+	// serve index.html if no route is found
+	router.NoRoute(func(c *gin.Context) {
+		c.File("./ts/build/index.html")
+	})
 
 	_ = api.Mount(router.Group("api"), opts)
 
