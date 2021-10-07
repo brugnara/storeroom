@@ -1,6 +1,5 @@
 import React from 'react';
 
-import './App.css';
 import {Layout} from './layout/Layout';
 
 import {
@@ -9,8 +8,28 @@ import {
 
 import 'bulma/css/bulma.min.css';
 import ScrollToTop from './layout/ScrollToTop';
+import falcor from 'falcor';
+import HttpDataSource from 'falcor-http-datasource';
 
-export class App extends React.PureComponent {
+interface AppProps {
+    foo?: string;
+}
+
+const model = new falcor.Model({source: new HttpDataSource('items.json') });
+
+export class App extends React.PureComponent<AppProps> {
+    constructor(props: AppProps) {
+        super(props);
+
+
+        // retrieve the "greeting" key from the root of the Virtual JSON resource
+        model.
+            get('greeting').
+            then(function(response) {
+                console.log(response.json.greeting);
+            });
+    }
+
     public render(): React.ReactNode {
         return (
             <div className="App">
