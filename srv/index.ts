@@ -47,5 +47,5 @@ app.use('/', (req: Request, res: Response, next: NextFunction) => {
 app.use(express.static('public'));
 
 app.listen(PORT, () => {
-    console.log(`[server]: Server is running at http://localhost:${PORT}`);
+    console.log(`[server]: Server is running at :${PORT}`);
 });
