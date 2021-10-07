@@ -1,23 +1,17 @@
 {
-  "compilerOptions": {
-    "outDir": "./public/",
-    "noImplicitAny": true,
-    "module": "es6",
-    "target": "es5",
-    "jsx": "react",
-    "allowJs": true,
-    "moduleResolution": "node",
-    "skipLibCheck": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "sourceMap": true,
-  },
-  "include": [
-    "ts/src",
-    "ts/test"
-  ],
-  "exclude": [
-    "node_modules",
-    "srv"
-  ]
+    "compilerOptions": {
+        "outDir": "./public/",
+        "noImplicitAny": true,
+        "module": "es6",
+        "target": "es5",
+        "jsx": "react",
+        "allowJs": true,
+        "moduleResolution": "node",
+        "skipLibCheck": true,
+        "experimentalDecorators": true,
+        "allowSyntheticDefaultImports": true,
+        "sourceMap": true
+    },
+    "include": ["ts/src", "ts/test"],
+    "exclude": ["node_modules", "srv"]
 }

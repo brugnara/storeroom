@@ -5,9 +5,7 @@ export type IScrollToTopProps = RouteComponentProps;
 
 class ScrollToTop extends React.Component<IScrollToTopProps> {
     componentDidUpdate(prevProps: IScrollToTopProps) {
-        if (
-            this.props.location.pathname !== prevProps.location.pathname
-        ) {
+        if (this.props.location.pathname !== prevProps.location.pathname) {
             window.scrollTo(0, 0);
         }
     }

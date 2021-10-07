@@ -3,7 +3,7 @@ import Body from './Body';
 
 import Header from './Header';
 
-import {Container} from 'react-bulma-components';
+import { Container } from 'react-bulma-components';
 
 export class Layout extends React.Component {
     public render(): React.ReactNode {
