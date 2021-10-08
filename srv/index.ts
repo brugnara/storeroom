@@ -23,21 +23,22 @@ async function main() {
     const collection = mongoClient.db().collection('items');
 
     app.use(
-        '/items.json',
-        falcorExpress.dataSourceRoute((req: Request, res: Response) => {
-            if (req.path == '/ciccio') {
-                res.end('pasticcio');
-            }
-
+        '/model.json',
+        falcorExpress.dataSourceRoute(() => {
             // create a Virtual JSON resource with single key ('greeting')
             return new Router([
                 {
-                    // match a request for the key 'greeting'
-                    route: 'greeting',
-                    // respond with a PathValue with the value of 'Hello World.'
+                    route: 'item.name',
                     async get() {
                         const value = await collection.findOne();
-                        return { path: ['greeting'], value: value.name };
+                        return { path: ['item', 'name'], value: value.name };
+                    },
+                },
+                {
+                    route: 'item.cb',
+                    async get() {
+                        const value = await collection.findOne();
+                        return { path: ['item', 'cb'], value: value.cb };
                     },
                 },
             ]);

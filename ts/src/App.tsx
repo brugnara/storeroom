@@ -9,22 +9,23 @@ import ScrollToTop from './layout/ScrollToTop';
 import falcor from 'falcor';
 import HttpDataSource from 'falcor-http-datasource';
 
-interface AppProps {
-    foo?: string;
+const model = new falcor.Model({ source: new HttpDataSource('model.json') });
+
+interface Item {
+    name: string;
+    cb: string;
 }
 
-const model = new falcor.Model({ source: new HttpDataSource('items.json') });
+type ItemGetter = {
+    item: Item;
+};
 
-export class App extends React.PureComponent<AppProps> {
-    constructor(props: AppProps) {
-        super(props);
+model.get<ItemGetter>('item["name","cb"]').then(function (response) {
+    console.log(response.json.item.name);
+    console.log(response.json.item.cb);
+});
 
-        // retrieve the "greeting" key from the root of the Virtual JSON resource
-        model.get('greeting').then(function (response) {
-            console.log(response.json.greeting);
-        });
-    }
-
+export class App extends React.PureComponent {
     public render(): React.ReactNode {
         return (
             <div className="App">
