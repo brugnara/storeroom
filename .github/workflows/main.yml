@@ -33,7 +33,7 @@ jobs:
             - name: Build
               run: |
                   npm install
-                  npm build
+                  npm run build
 
             #- name: Cypress.io
             # You may pin to the exact commit or the version.
