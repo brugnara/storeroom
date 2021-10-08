@@ -32,10 +32,10 @@ jobs:
                   cache: npm
                   registry-url: 'https://npm.pkg.github.com'
 
-              run: npm install --ignore-scripts
-
             - name: Build webpack
-              run: npm run build
+              run: |
+                  npm install --ignore-scripts
+                  npm run build
 
             #- name: Cypress.io
             # You may pin to the exact commit or the version.
