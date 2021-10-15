@@ -12,6 +12,6 @@
         "allowSyntheticDefaultImports": true,
         "sourceMap": true
     },
-    "include": ["ts/src", "ts/test"],
-    "exclude": ["node_modules", "srv"]
+    "include": ["ts/client"],
+    "exclude": ["node_modules", "ts/server"]
 }

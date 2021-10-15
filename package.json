@@ -4,9 +4,9 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "srv": "nodemon srv/index.ts",
-        "ts": "webpack -w --config webpack.dev.js",
-        "start": "npm-run-all -p srv ts",
+        "server": "nodemon ts/server/index.ts",
+        "client": "webpack -w --config webpack.dev.js",
+        "start": "npm-run-all -p server client",
         "build": "webpack --config webpack.prod.js"
     },
     "repository": {
