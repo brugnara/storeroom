@@ -3,7 +3,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import store, { IState } from '../Store';
 import { boundMethod } from 'autobind-decorator';
-import { IUser } from '../reducers/user';
+import { IUser } from '../reducers/UserReducer';
 import { Link } from 'react-router-dom';
 import { Container, Navbar } from 'react-bulma-components';
 import { SearchBar } from '../components/SearchBar';

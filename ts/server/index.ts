@@ -5,7 +5,12 @@ import fs from 'fs';
 import path from 'path';
 import falcorExpress from 'falcor-express';
 import Router, { RouteResult } from 'falcor-router';
-import FalcorJsonGraph, { atom, PathValue, Range } from 'falcor-json-graph';
+import FalcorJsonGraph, {
+    atom,
+    error,
+    PathValue,
+    Range,
+} from 'falcor-json-graph';
 
 const app: Application = express(),
     PORT: number = +(process.env.PORT ?? 8000),
@@ -31,7 +36,8 @@ function fieldsToProjection(fields: Array<string>, _id = 1): Document {
 async function main() {
     await mongoClient.connect();
 
-    const collection = mongoClient.db().collection('items');
+    const collectionItems = mongoClient.db().collection('items');
+    const collectionUsers = mongoClient.db().collection('users');
 
     app.use(
         '/model.json',
@@ -39,25 +45,25 @@ async function main() {
             // create a Virtual JSON resource with single key ('greeting')
             return new Router([
                 {
-                    route: 'itemByIDOK[{keys:_id}][{keys:props}]',
+                    route: 'userByID[{keys:_id}]',
                     async get(pathSet: FalcorJsonGraph.PathSet) {
-                        console.log('itemID', pathSet);
+                        console.log('userByID', pathSet);
 
                         const ids = pathSet[1] as Array<string>,
-                            fields = pathSet[2] as Array<string>,
-                            values = await collection
+                            values = await collectionUsers
                                 .find({
                                     _id: { $in: ids },
                                 })
                                 .toArray();
 
+                        console.log(values);
+
                         const mapped = values.reduce((acc, value) => {
-                            fields.forEach((field) => {
-                                acc.push({
-                                    path: [pathSet[0], value._id, field],
-                                    value: value[field],
-                                });
+                            acc.push({
+                                value: value.profile?.name == null,
+                                path: [pathSet[0], value._id],
                             });
+
                             return acc;
                         }, []);
 
@@ -69,24 +75,37 @@ async function main() {
                 {
                     route: 'itemByID[{keys:_id}]',
                     async get(pathSet: FalcorJsonGraph.PathSet) {
-                        console.log('itemID', pathSet);
-
                         const ids = pathSet[1] as Array<string>,
-                            values = await collection
-                                .find({
-                                    _id: { $in: ids },
-                                })
+                            values = await collectionItems
+                                .find(
+                                    {
+                                        _id: { $in: ids },
+                                    },
+                                    {
+                                        _id: 1,
+                                        productor: 1,
+                                        name: 1,
+                                        createdBy: 1,
+                                        cb: 1,
+                                    } as Document
+                                )
                                 .toArray();
 
                         const mapped = values.reduce((acc, value) => {
                             acc.push({
+                                value: {
+                                    ...value,
+                                    createdBy: FalcorJsonGraph.ref([
+                                        'userByID',
+                                        value.createdBy,
+                                    ]),
+                                },
                                 path: [pathSet[0], value._id],
-                                value: atom(value),
                             });
                             return acc;
                         }, []);
 
-                        console.dir(mapped);
+                        console.log(JSON.stringify(mapped[0]), '\n');
 
                         return mapped as RouteResult;
                     },
@@ -95,7 +114,7 @@ async function main() {
                     route: 'items[{ranges:indexRanges}]',
                     async get(pathSet: FalcorJsonGraph.PathSet) {
                         const range = pathSet[1] as Range,
-                            values = await collection
+                            values = await collectionItems
                                 .find({}, { _id: 1 } as Document)
                                 .sort({})
                                 .skip(range[0].from)
@@ -121,14 +140,14 @@ async function main() {
                     route: 'itemsFind[{keys:terms}][{ranges}]',
                     async get(pathSet: FalcorJsonGraph.PathSet) {
                         const terms = pathSet[1] as Array<string>,
-                            range = pathSet[2] as Array<Range>;
+                            range = pathSet[2] as Array<Range>,
+                            ret = [];
 
                         if (range.length !== 1) {
                             throw new Error('Only one range is supported');
-                            return [];
                         }
 
-                        const values = await collection
+                        const values = await collectionItems
                             .find(
                                 {
                                     $or: terms.map((term) => ({
@@ -151,13 +170,25 @@ async function main() {
                                 { _id: 1 } as Document
                             )
                             .skip(range[0].from)
-                            .limit(range[0].to)
+                            .limit(Math.min(range[0].to + 1, 100))
                             .toArray();
 
-                        return values.map((value, index) => ({
-                            path: [pathSet[0], pathSet[1][0], index],
-                            value: FalcorJsonGraph.ref(['itemByID', value._id]),
-                        }));
+                        for (let i = range[0].from; i <= range[0].to; i++) {
+                            const value =
+                                values[i - range[0].from] == null
+                                    ? null
+                                    : FalcorJsonGraph.ref([
+                                          'itemByID',
+                                          values[i]._id,
+                                      ]);
+
+                            ret.push({
+                                value,
+                                path: [pathSet[0], pathSet[1][0], i],
+                            });
+                        }
+
+                        return ret;
                     },
                 },
             ]);
