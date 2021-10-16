@@ -10,6 +10,12 @@ const model = new falcor.Model({ source: new HttpDataSource('model.json') });
 // model.get<ItemGetter>(['items', { from: 1, to: 2}, ['name', 'cb']]).then(console.log);
 // model.get<ItemGetter>('items[0..20]["name","productor","cb"]').then(console.log);
 // model.get<ItemGetter>('itemsFind["pasta"][0..10]["name","cb"]').then(console.log);
+// model.get('userByID["2LAKhbPSAi2A3ffvZ"].profile').subscribe(console.log);
+// model.get('userByID["2LAKhbPSAi2A3ffvZ"].createdAt').subscribe(console.log);
+// model.get(['itemByID', '228uunY3LMzANmFNo', 'createdBy', 'profile', null]).then(console.log);
+// model.get('itemByID["228uunY3LMzANmFNo"].createdBy.name').then(console.log);
+// model.get(['itemByID', '228uunY3LMzANmFNo', 'createdBy', 'name']).then(console.log);
+// model.get('itemByID["228uunY3LMzANmFNo"].userProfile.name').then(console.log);
 /*
 model.get<ItemGetter>(
     [

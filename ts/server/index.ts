@@ -37,7 +37,7 @@ function fieldsToProjection(fields: Array<string>, _id = 1): Document {
 
 function extractUserProfile(user: Document): Document {
     const profile: Document = user.profile ?? {},
-        name: string = (profile.name ?? 'MisterX').split(/@|\s|\./)[0];
+        name: string = (profile.name ?? 'Anonimo').split(/@|\s|\./)[0];
 
     return {
         _id: user._id,
@@ -156,12 +156,20 @@ async function main() {
                 {
                     route: 'itemsFind[{keys:terms}][{ranges}]',
                     async get(pathSet: FalcorJsonGraph.PathSet) {
-                        const terms = pathSet[1] as Array<string>,
-                            range = pathSet[2] as Array<Range>,
+                        let terms = pathSet[1] as Array<string>;
+                        const range = pathSet[2] as Array<Range>,
                             ret = [];
 
                         if (range.length !== 1) {
                             throw new Error('Only one range is supported');
+                        }
+
+                        terms = terms
+                            .map((term) => term.trim())
+                            .filter((term) => term.length > 0);
+
+                        if (terms.length === 0) {
+                            throw new Error('Empty query :/');
                         }
 
                         const values = await collectionItems

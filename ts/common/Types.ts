@@ -3,13 +3,18 @@ export interface Item {
     name: string;
     cb: string;
     productor: string;
+    um: string;
+    qnt: number;
     createdBy: User;
+    submitted: number;
+}
+
+export interface ItemsListedResults {
+    [index: string]: Item;
 }
 
 export interface ItemsFindResult {
-    [searchTerm: string]: {
-        [index: string]: Item;
-    };
+    [searchTerm: string]: ItemsListedResults;
 }
 
 export interface ItemsFindGetter {
@@ -18,7 +23,5 @@ export interface ItemsFindGetter {
 
 export interface User {
     _id: string;
-    profile: {
-        name: string;
-    };
+    name: string;
 }
