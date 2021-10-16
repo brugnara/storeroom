@@ -19,7 +19,7 @@ export interface SearchBarState {
 }
 
 setInterval(() => {
-    console.log(model.getCache());
+    // console.log(model.getCache());
 }, 2000);
 
 export class SearchBar extends React.Component<SearchBarProps> {
@@ -36,7 +36,8 @@ export class SearchBar extends React.Component<SearchBarProps> {
         // model.get('userByID["2LAKhbPSAi2A3ffvZ"].profile').subscribe(console.log);
         // model.get('userByID["2LAKhbPSAi2A3ffvZ"].createdAt').subscribe(console.log);
         // model.get(['itemByID', '228uunY3LMzANmFNo', 'createdBy', 'profile', null]).then(console.log);
-        // model.get('itemByID["228uunY3LMzANmFNo"].userProfile').then(console.log);
+        // model.get('itemByID["228uunY3LMzANmFNo"].createdBy.name').then(console.log);
+        // model.get(['itemByID', '228uunY3LMzANmFNo', 'createdBy', 'name']).then(console.log);
         // model.get('itemByID["228uunY3LMzANmFNo"].userProfile.name').then(console.log);
 
         // const mm: any = await model.get('itemByID["228uunY3LMzANmFNo"].createdBy');
@@ -48,7 +49,8 @@ export class SearchBar extends React.Component<SearchBarProps> {
                 'itemsFind',
                 query,
                 { to: 9 },
-                ['name', 'cb', 'productor', 'createdBy'],
+                ['_id', 'name', 'cb', 'productor', 'createdBy'],
+                ['name', '_id'],
             ]
             // `itemsFind['${query}'][0..9]['name','cb','productor','createdBy.profile']`
         );

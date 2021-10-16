@@ -12,6 +12,8 @@ import FalcorJsonGraph, {
     Range,
 } from 'falcor-json-graph';
 
+import { clone } from '../common/Helpers';
+
 const app: Application = express(),
     PORT: number = +(process.env.PORT ?? 8000),
     publicUrl: string = process.env.PUBLIC_URL ?? '',
@@ -31,6 +33,16 @@ function fieldsToProjection(fields: Array<string>, _id = 1): Document {
         },
         { _id }
     );
+}
+
+function extractUserProfile(user: Document): Document {
+    const profile: Document = user.profile ?? {},
+        name: string = (profile.name ?? 'MisterX').split(/@|\s|\./)[0];
+
+    return {
+        _id: user._id,
+        name: name[0].toUpperCase() + name.slice(1),
+    };
 }
 
 async function main() {
@@ -60,7 +72,9 @@ async function main() {
 
                         const mapped = values.reduce((acc, value) => {
                             acc.push({
-                                value: value.profile?.name == null,
+                                value: FalcorJsonGraph.atom(
+                                    extractUserProfile(value)
+                                ),
                                 path: [pathSet[0], value._id],
                             });
 
@@ -92,16 +106,19 @@ async function main() {
                                 .toArray();
 
                         const mapped = values.reduce((acc, value) => {
-                            acc.push({
-                                value: {
-                                    ...value,
-                                    createdBy: FalcorJsonGraph.ref([
+                            acc.push(
+                                {
+                                    value,
+                                    path: [pathSet[0], value._id],
+                                },
+                                {
+                                    value: FalcorJsonGraph.ref([
                                         'userByID',
                                         value.createdBy,
                                     ]),
-                                },
-                                path: [pathSet[0], value._id],
-                            });
+                                    path: [pathSet[0], value._id, 'createdBy'],
+                                }
+                            );
                             return acc;
                         }, []);
 
