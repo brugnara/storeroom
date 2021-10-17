@@ -65,7 +65,7 @@ export class ItemsRouter extends BaseRouter<ItemFromDB> {
                 }
 
                 terms = terms
-                    .map((term) => term.trim())
+                    .map((term) => `${term}`.trim())
                     .filter((term) => term.length > 0);
 
                 if (terms.length === 0) {
@@ -84,7 +84,13 @@ export class ItemsRouter extends BaseRouter<ItemFromDB> {
                                         },
                                     },
                                     {
-                                        description: {
+                                        productor: {
+                                            $regex: term,
+                                            $options: 'i',
+                                        },
+                                    },
+                                    {
+                                        cb: {
                                             $regex: term,
                                             $options: 'i',
                                         },
