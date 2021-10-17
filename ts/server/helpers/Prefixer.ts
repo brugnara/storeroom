@@ -10,4 +10,12 @@ export class Prefixer {
 
         return `${prefix}.${path}`;
     }
+
+    public static byID(prefix: string): string {
+        return Prefixer.join(prefix, 'byID[{keys:_id}]');
+    }
+
+    public static list(prefix: string): string {
+        return Prefixer.join(prefix, 'list[{ranges:indexRanges}]');
+    }
 }

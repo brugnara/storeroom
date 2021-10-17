@@ -6,77 +6,53 @@ import React from 'react';
 import { Card, Container, Form, Hero, Icon } from 'react-bulma-components';
 import model from '../Model';
 
-import { ItemsFindGetter, ItemsListedResults } from '../../common/Types';
+import { Item, FindGetter, KeyValueResults } from '../../common/Types';
 import store from '../Store';
 import { ISearchAction } from '../reducers/SearchReducer';
 import { ItemCard } from './ItemCard';
 
 import './SearchBar.less';
-
-export interface SearchBarProps {
-    foo?: string;
-}
+import { keyValuedResultsToArray } from '../../common/Helpers';
 
 export interface SearchBarState {
-    results: ItemsListedResults;
+    results: Array<Item>;
 }
 
-setInterval(() => {
-    // console.log(model.getCache());
-}, 2000);
-
-export class SearchBar extends React.Component<SearchBarProps> {
+export class SearchBar extends React.Component<{}, SearchBarState> {
     public state: SearchBarState = {
-        results: null,
+        results: [],
     };
-
-    get resultsKeys(): Array<string> {
-        return Object.keys(this.state?.results ?? {}).filter((key) =>
-            /^[^$]/.test(key)
-        );
-    }
-
-    get resultsCount(): number {
-        const keys = this.resultsKeys;
-
-        if (keys.length === 0) {
-            return 0;
-        }
-
-        return keys.reduce((acc, key) => {
-            if (this.state.results[key] != null) {
-                acc++;
-            }
-
-            return acc;
-        }, 0);
-    }
 
     @boundMethod
     async search(event: React.ChangeEvent<HTMLInputElement>): Promise<void> {
         this.setState({
-            results: null,
+            results: [],
         });
 
         // todo: split query into an array and handle each result accordingly
-        const query: string = event.target.value.trim(),
-            items = await model.get<ItemsFindGetter>([
-                'items',
-                'find',
-                query,
-                { to: 9 },
-                [
-                    '_id',
-                    'name',
-                    'cb',
-                    'productor',
-                    'um',
-                    'submitted',
-                    'qnt',
-                    'createdBy',
-                ],
-                ['_id', 'name'],
-            ]);
+        const query: string = event.target.value.trim();
+
+        if (query.length === 0) {
+            return;
+        }
+
+        const items = await model.get<FindGetter<Item>>([
+            'items',
+            'find',
+            query,
+            { to: 9 },
+            [
+                '_id',
+                'name',
+                'cb',
+                'productor',
+                'um',
+                'submitted',
+                'qnt',
+                'createdBy',
+            ],
+            ['_id', 'name'],
+        ]);
 
         store.dispatch<ISearchAction>({
             type: 'SEARCH_FOR',
@@ -85,23 +61,23 @@ export class SearchBar extends React.Component<SearchBarProps> {
             },
         });
 
-        this.setState({ results: items.json.items.find[query] });
+        this.setState({
+            results: keyValuedResultsToArray(items.json.items.find[query]),
+        });
     }
 
     renderResults(): React.ReactNode {
-        if (this.resultsCount === 0) {
+        if (this.state.results.length === 0) {
             return null;
         }
 
-        const cards = this.resultsKeys
-            .filter((key) => this.state.results[key])
-            .map((key) => {
-                return <ItemCard key={key} {...this.state.results[key]} />;
-            });
+        const cards = this.state.results.map((result) => {
+            return <ItemCard key={result._id} {...result} />;
+        });
 
         return (
             <Container className="results">
-                <h1>{this.resultsCount} result(s)</h1>
+                <h1>{this.state.results.length} result(s)</h1>
                 {cards}
             </Container>
         );

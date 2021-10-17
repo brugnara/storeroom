@@ -23,7 +23,7 @@ export class UsersRouter extends BaseRouter<User> {
         const that = this;
 
         return {
-            route: Prefixer.join(this.prefix, 'byID[{keys:_id}]'),
+            route: Prefixer.byID(this.prefix),
             async get(pathSet: FalcorJsonGraph.PathSet) {
                 const ids = pathSet.pop() as Array<string>,
                     values = await that.collection

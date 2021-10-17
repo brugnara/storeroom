@@ -5,28 +5,14 @@ import { Collection, Document } from 'mongodb';
 import { Item, ItemFromDB } from '../../common/Types';
 import FalcorRouter from 'falcor-router';
 import FalcorJsonGraph, { Range } from 'falcor-json-graph';
-import { UsersRouter } from './UsersRouter';
 import { Prefixer } from '../helpers/Prefixer';
 
 export class ItemsRouter extends BaseRouter<ItemFromDB> {
-    protected userRouter: UsersRouter;
-
-    constructor(
-        prefix: string,
-        collection: Collection<ItemFromDB>,
-        userRouter: UsersRouter
-    ) {
-        super(prefix, collection);
-
-        this.userRouter = userRouter;
-    }
-
     byID(): FalcorRouter.RouteDefinition {
         const that = this;
         return {
-            route: Prefixer.join(this.prefix, 'byID[{keys:_id}]'),
+            route: Prefixer.byID(this.prefix),
             async get(pathSet: FalcorJsonGraph.PathSet) {
-                console.log(this);
                 const ids = pathSet.pop() as Array<string>,
                     values = await that.collection
                         .find(
@@ -52,7 +38,7 @@ export class ItemsRouter extends BaseRouter<ItemFromDB> {
                             path: [...pathSet, value._id],
                         },
                         {
-                            value: that.userRouter.$ref(value.createdBy),
+                            value: that.routes.users.$ref(value.createdBy),
                             path: [...pathSet, value._id, 'createdBy'],
                         }
                     );
@@ -126,8 +112,6 @@ export class ItemsRouter extends BaseRouter<ItemFromDB> {
                     });
                 }
 
-                console.log(JSON.stringify(ret));
-
                 return ret;
             },
         };
@@ -137,7 +121,7 @@ export class ItemsRouter extends BaseRouter<ItemFromDB> {
         const that = this;
 
         return {
-            route: Prefixer.join(this.prefix, 'list[{ranges:indexRanges}]'),
+            route: Prefixer.list(this.prefix),
             async get(pathSet: FalcorJsonGraph.PathSet) {
                 const range = pathSet.pop() as Range,
                     values = await that.collection
@@ -151,7 +135,7 @@ export class ItemsRouter extends BaseRouter<ItemFromDB> {
 
                 values.forEach((value, index) => {
                     ret.push({
-                        path: [...pathSet, index],
+                        path: [...pathSet, index + range[0].from],
                         value: that.$ref(value._id),
                     });
                 });

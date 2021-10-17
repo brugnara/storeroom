@@ -9,8 +9,9 @@ import FalcorJsonGraph, { PathValue, Range } from 'falcor-json-graph';
 
 import { clone } from '../common/Helpers';
 import { UsersRouter } from './routes/UsersRouter';
-import { Item, ItemFromDB, User } from '../common/Types';
+import { Item, ItemFromDB, RoomFromDB, User } from '../common/Types';
 import { ItemsRouter } from './routes/ItemsRouter';
+import { RoomsRouter } from './routes/RoomsRouter';
 
 const app: Application = express(),
     PORT: number = +(process.env.PORT ?? 8000),
@@ -36,11 +37,17 @@ function fieldsToProjection(fields: Array<string>, _id = 1): Document {
 async function main() {
     await mongoClient.connect();
 
-    const collectionItems = mongoClient.db().collection<ItemFromDB>('items');
-    const collectionUsers = mongoClient.db().collection<User>('users');
-
-    const usersRouter = new UsersRouter('users', collectionUsers);
-    const itemsRouter = new ItemsRouter('items', collectionItems, usersRouter);
+    const collectionItems = mongoClient.db().collection<ItemFromDB>('items'),
+        collectionUsers = mongoClient.db().collection<User>('users'),
+        collectionRooms = mongoClient.db().collection<RoomFromDB>('rooms'),
+        // routers
+        usersRouter = new UsersRouter('users', collectionUsers),
+        itemsRouter = new ItemsRouter('items', collectionItems, {
+            users: usersRouter,
+        }),
+        roomsRouter = new RoomsRouter('rooms', collectionRooms, {
+            users: usersRouter,
+        });
 
     app.use(
         '/model.json',
@@ -48,15 +55,19 @@ async function main() {
             // create a Virtual JSON resource with single key ('greeting')
             return new Router([
                 usersRouter.byID(),
+                //
                 itemsRouter.byID(),
                 itemsRouter.find(),
                 itemsRouter.list(),
+                //
+                roomsRouter.list(),
             ]);
         })
     );
 
     app.use('/', (req: Request, res: Response, next: NextFunction) => {
-        if (req.path !== '/') {
+        // forward to static files if it's a file request
+        if (/\..+$/.test(req.path)) {
             return next();
         }
 

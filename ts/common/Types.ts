@@ -19,14 +19,28 @@ export interface User extends IdentificableDoc {
 export interface IdentificableDoc {
     _id: string;
 }
-export interface ItemsListedResults {
-    [index: string]: Item;
+
+export interface KeyValueResults<T> {
+    [index: string]: T;
 }
 
-export interface ItemsFindResult {
-    [searchTerm: string]: ItemsListedResults;
+export type FindGetter<T> = {
+    [K in CompatibleRouters]: { find: KeyValueResults<KeyValueResults<T>> };
+};
+
+export type ListGetter<T> = {
+    [K in CompatibleRouters]: { list: KeyValueResults<T> };
+};
+
+export type CompatibleRouters = 'users' | 'items' | 'rooms';
+
+export interface Room extends IdentificableDoc {
+    name: string;
+    ownedBy: User;
+    submitted: number;
+    starred?: boolean;
 }
 
-export interface ItemsFindGetter {
-    items: { find: ItemsFindResult };
-}
+export type RoomFromDB = Room & {
+    ownedBy: string;
+};
