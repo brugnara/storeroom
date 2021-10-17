@@ -61,13 +61,7 @@ export class HeaderComponent extends React.Component<IHeaderProps> {
     }
 
     public render(): React.ReactNode {
-        return (
-            <>
-                {this.renderMenu()}
-                <SearchBar />
-                <CallToAction />
-            </>
-        );
+        return <>{this.renderMenu()}</>;
     }
 }
 

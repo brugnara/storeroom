@@ -14,6 +14,7 @@ import { ItemsRouter } from './routes/ItemsRouter';
 import { RoomsRouter } from './routes/RoomsRouter';
 
 const app: Application = express(),
+    FAKE_USER_ID: string = process.env.FAKE_USER_ID || null,
     PORT: number = +(process.env.PORT ?? 8000),
     publicUrl: string = process.env.PUBLIC_URL ?? '',
     indexHtml: string = fs
@@ -23,6 +24,8 @@ const app: Application = express(),
         process.env.MONGODB_URI ??
             'mongodb://storeroom:password@0.0.0.0:27017/storeroom'
     );
+
+FAKE_USER_ID && console.log('FAKE_USER_ID is:', FAKE_USER_ID);
 
 function fieldsToProjection(fields: Array<string>, _id = 1): Document {
     return fields.reduce(
@@ -62,7 +65,9 @@ async function main() {
         mainRouter = function (userId: string) {
             // Invoking the base class constructor
             baseRouter.call(this);
-            this.userId = userId;
+            this.userId = FAKE_USER_ID || userId;
+            //
+            console.log('UserID is:', this.userId);
         };
 
     // Deriving the NetflixRouter from the BaseRouter using JavaScript's classical inheritance pattern

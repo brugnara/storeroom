@@ -45,17 +45,31 @@ export class RoomsRouter extends BaseRouter<RoomFromDB> {
         return {
             route: Prefixer.list(this.prefix),
             async get(pathSet) {
+                if (!this.userId) {
+                    throw new Error('Not logged in');
+                }
+
                 const range = pathSet.pop() as Array<FalcorJsonGraph.Range>,
-                    ret = [];
+                    ret = [],
+                    values = await that.collection
+                        .find<RoomFromDB>({
+                            ownedBy: this.userId,
+                        })
+                        .skip(range[0].from)
+                        .limit(range[0].to + 1)
+                        .toArray();
 
-                const values = await that.collection
-                    .find<RoomFromDB>({})
-                    .skip(range[0].from)
-                    .limit(range[0].to)
-                    .toArray();
+                for (let i = range[0].from; i <= range[0].to; i++) {
+                    const room = values[i] || null,
+                        initialPath = [...pathSet, i + range[0].from];
 
-                values.forEach((room, index) => {
-                    const initialPath = [...pathSet, index + range[0].from];
+                    if (!room) {
+                        ret.push({
+                            path: [...initialPath],
+                            value: null,
+                        });
+                        continue;
+                    }
 
                     ret.push(
                         {
@@ -71,11 +85,15 @@ export class RoomsRouter extends BaseRouter<RoomFromDB> {
                             value: room.submitted,
                         },
                         {
+                            path: [...initialPath, 'starred'],
+                            value: room.starred,
+                        },
+                        {
                             path: [...initialPath, 'ownedBy'],
                             value: that.routes.users.$ref(room.ownedBy),
                         }
                     );
-                });
+                }
 
                 return ret;
             },
