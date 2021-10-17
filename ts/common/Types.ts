@@ -1,5 +1,4 @@
-export interface Item {
-    _id: string;
+export interface Item extends IdentificableDoc {
     name: string;
     cb: string;
     productor: string;
@@ -9,6 +8,17 @@ export interface Item {
     submitted: number;
 }
 
+export type ItemFromDB = Item & {
+    createdBy: string;
+};
+
+export interface User extends IdentificableDoc {
+    name: string;
+}
+
+export interface IdentificableDoc {
+    _id: string;
+}
 export interface ItemsListedResults {
     [index: string]: Item;
 }
@@ -18,10 +28,5 @@ export interface ItemsFindResult {
 }
 
 export interface ItemsFindGetter {
-    itemsFind: ItemsFindResult;
-}
-
-export interface User {
-    _id: string;
-    name: string;
+    items: { find: ItemsFindResult };
 }

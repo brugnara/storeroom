@@ -47,6 +47,9 @@ export class HeaderComponent extends React.Component<IHeaderProps> {
                                 <Link to="/items">Items</Link>
                             </Navbar.Item>
                             <Navbar.Item renderAs="span">
+                                <Link to="/rooms">Items</Link>
+                            </Navbar.Item>
+                            <Navbar.Item renderAs="span">
                                 <Link to="/privacy">Privacy</Link>
                             </Navbar.Item>
                             {this.renderUserInfo()}

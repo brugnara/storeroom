@@ -58,9 +58,11 @@ export class SearchBar extends React.Component<SearchBarProps> {
             results: null,
         });
 
-        const query: string = event.target.value,
+        // todo: split query into an array and handle each result accordingly
+        const query: string = event.target.value.trim(),
             items = await model.get<ItemsFindGetter>([
-                'itemsFind',
+                'items',
+                'find',
                 query,
                 { to: 9 },
                 [
@@ -83,7 +85,7 @@ export class SearchBar extends React.Component<SearchBarProps> {
             },
         });
 
-        this.setState({ results: items.json.itemsFind[query] });
+        this.setState({ results: items.json.items.find[query] });
     }
 
     renderResults(): React.ReactNode {
