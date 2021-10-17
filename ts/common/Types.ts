@@ -20,17 +20,17 @@ export interface IdentificableDoc {
     _id: string;
 }
 
-export interface KeyValueResults<T> {
-    [index: string]: T;
-}
+export type KeyValueResults<T> = Record<string, T>;
 
-export type FindGetter<T> = {
-    [K in CompatibleRouters]: { find: KeyValueResults<KeyValueResults<T>> };
-};
+export type FindGetter<T> = Record<
+    CompatibleRouters,
+    { find: KeyValueResults<KeyValueResults<T>> }
+>;
 
-export type ListGetter<T> = {
-    [K in CompatibleRouters]: { list: KeyValueResults<T> };
-};
+export type ListGetter<T> = Record<
+    CompatibleRouters,
+    { list: KeyValueResults<T> }
+>;
 
 export type CompatibleRouters = 'users' | 'items' | 'rooms';
 

@@ -47,21 +47,32 @@ async function main() {
         }),
         roomsRouter = new RoomsRouter('rooms', collectionRooms, {
             users: usersRouter,
-        });
+        }),
+        //
+        baseRouter = Router.createClass([
+            usersRouter.byID(),
+            //
+            itemsRouter.byID(),
+            itemsRouter.find(),
+            itemsRouter.list(),
+            //
+            roomsRouter.list(),
+        ]),
+        // Creating a constructor for a class that derives from BaseRouter
+        mainRouter = function (userId: string) {
+            // Invoking the base class constructor
+            baseRouter.call(this);
+            this.userId = userId;
+        };
+
+    // Deriving the NetflixRouter from the BaseRouter using JavaScript's classical inheritance pattern
+    mainRouter.prototype = Object.create(baseRouter.prototype);
 
     app.use(
         '/model.json',
-        falcorExpress.dataSourceRoute(() => {
+        falcorExpress.dataSourceRoute((req: Request) => {
             // create a Virtual JSON resource with single key ('greeting')
-            return new Router([
-                usersRouter.byID(),
-                //
-                itemsRouter.byID(),
-                itemsRouter.find(),
-                itemsRouter.list(),
-                //
-                roomsRouter.list(),
-            ]);
+            return new mainRouter('userId');
         })
     );
 
