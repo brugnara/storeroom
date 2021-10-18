@@ -6,6 +6,7 @@ export interface Item extends IdentificableDoc {
     qnt: number;
     createdBy: User;
     submitted: number;
+    votes: number;
 }
 
 export type ItemFromDB = Item & {
@@ -32,7 +33,7 @@ export type ListGetter<T> = Record<
     { list: KeyValueResults<T> }
 >;
 
-export type CompatibleRouters = 'users' | 'items' | 'rooms';
+export type CompatibleRouters = 'users' | 'items' | 'rooms' | 'itemVotes';
 
 export interface Room extends IdentificableDoc {
     name: string;
@@ -43,4 +44,15 @@ export interface Room extends IdentificableDoc {
 
 export type RoomFromDB = Room & {
     ownedBy: string;
+};
+
+export interface ItemVote extends IdentificableDoc {
+    itemId: Item;
+    owner: User;
+    date: number;
+}
+
+export type ItemVoteFromDB = ItemVote & {
+    itemId: string;
+    owner: string;
 };

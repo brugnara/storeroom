@@ -41,6 +41,7 @@ export class ItemCard extends React.Component<Item> {
                                         {this.submitted}
                                     </time>
                                 </div>
+                                <div>{this.props.votes} voti</div>
                             </Columns.Column>
                         </Columns>
                     </Content>

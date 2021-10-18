@@ -32,23 +32,26 @@ export class SearchBar extends React.Component<{}, SearchBarState> {
             return;
         }
 
-        const items = await model.get<FindGetter<Item>>([
-            'items',
-            'find',
-            query,
-            { to: 9 },
-            [
-                '_id',
-                'name',
-                'cb',
-                'productor',
-                'um',
-                'submitted',
-                'qnt',
-                'createdBy',
-            ],
-            ['_id', 'name'],
-        ]);
+        const basePath = ['items', 'find', query, { to: 9 }],
+            items = await model.get<FindGetter<Item>>(
+                [
+                    ...basePath,
+                    [
+                        '_id',
+                        'name',
+                        'cb',
+                        'productor',
+                        'um',
+                        'submitted',
+                        'qnt',
+                        'votes',
+                    ],
+                    ['value'],
+                ],
+                [...basePath, ['createdBy'], ['_id', 'name']]
+            );
+
+        console.log(items);
 
         return keyValuedResultsToArray(items.json.items.find[query]);
     }

@@ -4,9 +4,9 @@ import FalcorJsonGraph from 'falcor-json-graph';
 import FalcorRouter from 'falcor-router';
 import { CompatibleRouters, IdentificableDoc } from '../../common/Types';
 
-export type MountableRouters = Partial<{
-    [K in CompatibleRouters]: BaseRouter<any>;
-}>;
+export type MountableRouters = Partial<
+    Record<CompatibleRouters, BaseRouter<any>>
+>;
 
 export abstract class BaseRouter<T extends IdentificableDoc> {
     protected prefix: string;

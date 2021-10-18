@@ -9,9 +9,16 @@ import FalcorJsonGraph, { PathValue, Range } from 'falcor-json-graph';
 
 import { clone } from '../common/Helpers';
 import { UsersRouter } from './routes/UsersRouter';
-import { Item, ItemFromDB, RoomFromDB, User } from '../common/Types';
+import {
+    Item,
+    ItemFromDB,
+    ItemVoteFromDB,
+    RoomFromDB,
+    User,
+} from '../common/Types';
 import { ItemsRouter } from './routes/ItemsRouter';
 import { RoomsRouter } from './routes/RoomsRouter';
+import { ItemVotesRouter } from './routes/ItemVotesRouter';
 
 const app: Application = express(),
     FAKE_USER_ID: string = process.env.FAKE_USER_ID || null,
@@ -43,10 +50,21 @@ async function main() {
     const collectionItems = mongoClient.db().collection<ItemFromDB>('items'),
         collectionUsers = mongoClient.db().collection<User>('users'),
         collectionRooms = mongoClient.db().collection<RoomFromDB>('rooms'),
+        collectionItemVotes = mongoClient
+            .db()
+            .collection<ItemVoteFromDB>('item_votes'),
         // routers
         usersRouter = new UsersRouter('users', collectionUsers),
+        itemVotesRouter = new ItemVotesRouter(
+            'itemVotes',
+            collectionItemVotes,
+            {
+                users: usersRouter,
+            }
+        ),
         itemsRouter = new ItemsRouter('items', collectionItems, {
             users: usersRouter,
+            itemVotes: itemVotesRouter,
         }),
         roomsRouter = new RoomsRouter('rooms', collectionRooms, {
             users: usersRouter,
@@ -58,6 +76,8 @@ async function main() {
             itemsRouter.byID(),
             itemsRouter.find(),
             itemsRouter.list(),
+            //
+            itemVotesRouter.byID(),
             //
             roomsRouter.list(),
         ]),

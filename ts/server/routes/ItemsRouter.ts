@@ -38,6 +38,10 @@ export class ItemsRouter extends BaseRouter<ItemFromDB> {
                             path: [...pathSet, value._id],
                         },
                         {
+                            value: that.routes.itemVotes.$ref(value._id),
+                            path: [...pathSet, value._id, 'votes'],
+                        },
+                        {
                             value: that.routes.users.$ref(value.createdBy),
                             path: [...pathSet, value._id, 'createdBy'],
                         }
