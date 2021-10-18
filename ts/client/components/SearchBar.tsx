@@ -3,10 +3,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { boundMethod } from 'autobind-decorator';
 import React from 'react';
 
-import { Card, Container, Form, Hero, Icon } from 'react-bulma-components';
+import { Container, Form, Icon } from 'react-bulma-components';
 import model from '../Model';
 
-import { Item, FindGetter, KeyValueResults } from '../../common/Types';
+import { Item, FindGetter } from '../../common/Types';
 import store from '../Store';
 import { ISearchAction } from '../reducers/SearchReducer';
 import { ItemCard } from './ItemCard';
@@ -44,11 +44,10 @@ export class SearchBar extends React.Component<{}, SearchBarState> {
                         'um',
                         'submitted',
                         'qnt',
-                        'votes',
                     ],
-                    ['value'],
                 ],
-                [...basePath, ['createdBy'], ['_id', 'name']]
+                [...basePath, 'createdBy', ['_id', 'name']],
+                [...basePath, 'votes', 'value']
             );
 
         console.log(items);

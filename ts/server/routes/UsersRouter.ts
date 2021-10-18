@@ -4,7 +4,6 @@ import FalcorRouter from 'falcor-router';
 import { BaseRouter } from './BaseRouter';
 import { User } from '../../common/Types';
 import { Prefixer } from '../helpers/Prefixer';
-import { boundMethod } from 'autobind-decorator';
 
 const ANON_USER_NAME = 'Anonimo';
 

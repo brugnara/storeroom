@@ -1,24 +1,23 @@
 import express, { Application, NextFunction, Request, Response } from 'express';
-import { Document, MongoClient } from 'mongodb';
+import { MongoClient } from 'mongodb';
 
 import fs from 'fs';
 import path from 'path';
 import falcorExpress from 'falcor-express';
-import Router, { RouteResult } from 'falcor-router';
-import FalcorJsonGraph, { PathValue, Range } from 'falcor-json-graph';
+import Router from 'falcor-router';
 
-import { clone } from '../common/Helpers';
 import { UsersRouter } from './routes/UsersRouter';
 import {
-    Item,
     ItemFromDB,
     ItemVoteFromDB,
     RoomFromDB,
+    StockFromDB,
     User,
 } from '../common/Types';
 import { ItemsRouter } from './routes/ItemsRouter';
 import { RoomsRouter } from './routes/RoomsRouter';
 import { ItemVotesRouter } from './routes/ItemVotesRouter';
+import { StockRoutes } from './routes/StocksRoutes';
 
 const app: Application = express(),
     FAKE_USER_ID: string = process.env.FAKE_USER_ID || null,
@@ -34,22 +33,13 @@ const app: Application = express(),
 
 FAKE_USER_ID && console.log('FAKE_USER_ID is:', FAKE_USER_ID);
 
-function fieldsToProjection(fields: Array<string>, _id = 1): Document {
-    return fields.reduce(
-        (acc, field) => {
-            acc[field] = 1;
-            return acc;
-        },
-        { _id }
-    );
-}
-
 async function main() {
     await mongoClient.connect();
 
     const collectionItems = mongoClient.db().collection<ItemFromDB>('items'),
         collectionUsers = mongoClient.db().collection<User>('users'),
         collectionRooms = mongoClient.db().collection<RoomFromDB>('rooms'),
+        collectionStocks = mongoClient.db().collection<StockFromDB>('stock'),
         collectionItemVotes = mongoClient
             .db()
             .collection<ItemVoteFromDB>('item_votes'),
@@ -69,6 +59,11 @@ async function main() {
         roomsRouter = new RoomsRouter('rooms', collectionRooms, {
             users: usersRouter,
         }),
+        stocksRouter = new StockRoutes('stocks', collectionStocks, {
+            users: usersRouter,
+            items: itemsRouter,
+            rooms: roomsRouter,
+        }),
         //
         baseRouter = Router.createClass([
             usersRouter.byID(),
@@ -79,13 +74,17 @@ async function main() {
             //
             itemVotesRouter.byID(),
             //
+            roomsRouter.byID(),
             roomsRouter.list(),
+            //
+            stocksRouter.byID(),
         ]),
         // Creating a constructor for a class that derives from BaseRouter
         mainRouter = function (userId: string) {
             // Invoking the base class constructor
             baseRouter.call(this);
             this.userId = FAKE_USER_ID || userId;
+            this.authenticated = true;
             //
             console.log('UserID is:', this.userId);
         };
@@ -95,7 +94,7 @@ async function main() {
 
     app.use(
         '/model.json',
-        falcorExpress.dataSourceRoute((req: Request) => {
+        falcorExpress.dataSourceRoute((_req: Request) => {
             // create a Virtual JSON resource with single key ('greeting')
             return new mainRouter('userId');
         })

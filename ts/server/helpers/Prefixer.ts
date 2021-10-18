@@ -1,4 +1,4 @@
-import { MountableRouters } from '../routes/BaseRouter';
+import { Stringable } from '../../common/Types';
 
 export class Prefixer {
     public static isValid(prefix: string): boolean {
@@ -17,8 +17,12 @@ export class Prefixer {
         return `${prefix}.${path}${allowedFields ? allowedFields : ''}`;
     }
 
-    public static byID(prefix: string, allowedFields?: string): string {
-        return Prefixer.join(prefix, 'byID[{keys:_id}]', allowedFields);
+    public static byID(prefix: string, allowedFields?: Stringable): string {
+        return Prefixer.join(
+            prefix,
+            'byID[{keys:_id}]',
+            allowedFields?.toString()
+        );
     }
 
     public static list(prefix: string): string {

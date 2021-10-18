@@ -16,7 +16,22 @@ const model = new falcor.Model({ source: new HttpDataSource('model.json') });
 // model.get('itemByID["228uunY3LMzANmFNo"].createdBy.name').then(console.log);
 // model.get(['itemByID', '228uunY3LMzANmFNo', 'createdBy', 'name']).then(console.log);
 // model.get('itemByID["228uunY3LMzANmFNo"].userProfile.name').then(console.log);
-model.get('item.votes["oysRrbfKCvkBskeaZ"]').then(console.log);
+// model.get('item.votes["oysRrbfKCvkBskeaZ"]').then(console.log);
+model
+    .get(
+        'stocks.byID["2K7DrCDvANzmQNmGk"]["_id","expire","added","roomId"]["submitted","name"]'
+    )
+    .subscribe(console.log);
+
+model
+    .get([
+        'stocks',
+        'byID',
+        '2K7DrCDvANzmQNmGk',
+        ['_id', 'expire', 'added', 'roomId'],
+        ['submitted', 'name'],
+    ])
+    .then(console.log);
 /*
 model.get<ItemGetter>(
     [

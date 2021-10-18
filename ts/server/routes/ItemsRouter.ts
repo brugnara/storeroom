@@ -1,8 +1,8 @@
 import { BaseRouter } from './BaseRouter';
 
-import { Collection, Document } from 'mongodb';
+import { Document } from 'mongodb';
 
-import { Item, ItemFromDB } from '../../common/Types';
+import { ItemFromDB } from '../../common/Types';
 import FalcorRouter from 'falcor-router';
 import FalcorJsonGraph, { Range } from 'falcor-json-graph';
 import { Prefixer } from '../helpers/Prefixer';

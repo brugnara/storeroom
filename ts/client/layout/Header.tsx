@@ -1,29 +1,16 @@
 import React from 'react';
 
 import { connect } from 'react-redux';
-import store, { IState } from '../Store';
-import { boundMethod } from 'autobind-decorator';
+import { IState } from '../Store';
 import { IUser } from '../reducers/UserReducer';
 import { Link } from 'react-router-dom';
 import { Container, Navbar } from 'react-bulma-components';
-import { SearchBar } from '../components/SearchBar';
-import { CallToAction } from '../components/CallToAction';
 
 export interface IHeaderProps {
     user: IUser;
 }
 
 export class HeaderComponent extends React.Component<IHeaderProps> {
-    @boundMethod
-    private onClick(): void {
-        store.dispatch({
-            type: 'login',
-            data: {
-                name: 'pippo',
-            },
-        });
-    }
-
     private renderUserInfo(): React.ReactNode {
         let link = <Link to="/signup">Signup</Link>;
 

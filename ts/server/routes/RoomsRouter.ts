@@ -12,27 +12,38 @@ export class RoomsRouter extends BaseRouter<RoomFromDB> {
         return {
             route: Prefixer.byID(this.prefix),
             async get(pathSet) {
+                if (!this.authenticated) {
+                    throw new Error('Not logged in');
+                }
+
                 const ids = pathSet.pop(),
                     ret = [];
 
-                that.collection
-                    .find<RoomFromDB>({ _id: { $in: ids } } as Document)
-                    .forEach((room) => {
-                        ret.push(
-                            {
-                                path: [...pathSet, room._id, 'name'],
-                                value: room.name,
-                            },
-                            {
-                                path: [...pathSet, room._id, 'submitted'],
-                                value: room.submitted,
-                            },
-                            {
-                                path: [...pathSet, room._id, 'ownedBy'],
-                                value: that.routes.users.$ref(room.ownedBy),
-                            }
-                        );
-                    });
+                console.log(ids);
+
+                // todo: fix this horseshit
+                (
+                    await that.collection
+                        .find<RoomFromDB>({ _id: { $in: ids } } as Document)
+                        .toArray()
+                ).forEach((room) => {
+                    ret.push(
+                        {
+                            path: [...pathSet, room._id, 'name'],
+                            value: room.name,
+                        },
+                        {
+                            path: [...pathSet, room._id, 'submitted'],
+                            value: room.submitted,
+                        },
+                        {
+                            path: [...pathSet, room._id, 'ownedBy'],
+                            value: that.routes.users.$ref(room.ownedBy),
+                        }
+                    );
+                });
+
+                console.log(ret);
 
                 return ret;
             },

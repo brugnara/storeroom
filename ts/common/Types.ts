@@ -33,7 +33,16 @@ export type ListGetter<T> = Record<
     { list: KeyValueResults<T> }
 >;
 
-export type CompatibleRouters = 'users' | 'items' | 'rooms' | 'itemVotes';
+export type CompatibleRouters =
+    | 'users'
+    | 'items'
+    | 'rooms'
+    | 'itemVotes'
+    | 'stocks';
+
+export interface Stringable {
+    toString(): string;
+}
 
 export interface Room extends IdentificableDoc {
     name: string;
@@ -55,4 +64,19 @@ export interface ItemVote extends IdentificableDoc {
 export type ItemVoteFromDB = ItemVote & {
     itemId: string;
     owner: string;
+};
+
+export interface Stock extends IdentificableDoc {
+    qnt: number;
+    expire: number;
+    added: number;
+    roomId: Room;
+    userId: User;
+    itemId: Item;
+}
+
+export type StockFromDB = Stock & {
+    roomId: string;
+    userId: string;
+    itemId: string;
 };

@@ -27,6 +27,9 @@ module.exports = {
         'linebreak-style': ['error', 'unix'],
         quotes: ['error', 'single'],
         semi: ['error', 'always'],
+
+        'no-unused-vars': 'off',
+        '@typescript-eslint/no-unused-vars': ['error'],
     },
     ignorePatterns: ['node_modules/', 'webpack.*.js', '.eslintrc.js'],
 };
