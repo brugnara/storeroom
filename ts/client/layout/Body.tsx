@@ -1,20 +1,30 @@
 import React from 'react';
 
-import { Switch, Route } from 'react-router';
-import { Items } from '../pages/Items';
+import { Switch, Route, useParams } from 'react-router';
+import { IdentificableDoc } from '../../common/Types';
+import { ItemsPage } from '../pages/Items';
 import { Me } from '../pages/Me';
-import { Rooms } from '../pages/Rooms';
+import { RoomPage } from '../pages/Room';
+import { RoomsPage } from '../pages/Rooms';
 import { Signup } from '../pages/Signup';
 
+function MountedRoom() {
+    const params = useParams<IdentificableDoc>();
+
+    return <RoomPage {...params} />;
+}
 export default class Body extends React.Component {
     public render(): React.ReactNode {
         return (
             <Switch>
                 <Route path="/items">
-                    <Items />
+                    <ItemsPage />
                 </Route>
-                <Route path="/rooms">
-                    <Rooms />
+                <Route exact path="/rooms">
+                    <RoomsPage />
+                </Route>
+                <Route exact path="/rooms/:_id">
+                    <MountedRoom />
                 </Route>
                 <Route path="/me">
                     <Me />
@@ -22,7 +32,6 @@ export default class Body extends React.Component {
                 <Route path="/signup">
                     <Signup />
                 </Route>
-                <Route path="/">Default</Route>
             </Switch>
         );
     }

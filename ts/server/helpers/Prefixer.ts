@@ -8,21 +8,23 @@ export class Prefixer {
     public static join(
         prefix: string,
         path: string,
-        allowedFields?: string
+        allowedFields?: Stringable
     ): string {
         if (!Prefixer.isValid(prefix)) {
             throw new Error(`Invalid prefix: ${prefix}`);
         }
 
-        return `${prefix}.${path}${allowedFields ? allowedFields : ''}`;
+        const ret = `${prefix}.${path}${
+            allowedFields ? allowedFields.toString() : ''
+        }`;
+
+        console.log(`Prefixer.join: ${ret}`);
+
+        return ret;
     }
 
     public static byID(prefix: string, allowedFields?: Stringable): string {
-        return Prefixer.join(
-            prefix,
-            'byID[{keys:_id}]',
-            allowedFields?.toString()
-        );
+        return Prefixer.join(prefix, 'byID[{keys:_id}]', allowedFields);
     }
 
     public static list(prefix: string): string {

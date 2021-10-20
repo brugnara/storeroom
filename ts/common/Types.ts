@@ -9,9 +9,9 @@ export interface Item extends IdentificableDoc {
     votes: number;
 }
 
-export type ItemFromDB = Item & {
+export interface ItemFromDB extends Omit<Item, 'createdBy'> {
     createdBy: string;
-};
+}
 
 export interface User extends IdentificableDoc {
     name: string;
@@ -51,9 +51,9 @@ export interface Room extends IdentificableDoc {
     starred?: boolean;
 }
 
-export type RoomFromDB = Room & {
+export interface RoomFromDB extends Omit<Room, 'ownedBy'> {
     ownedBy: string;
-};
+}
 
 export interface ItemVote extends IdentificableDoc {
     itemId: Item;
@@ -61,10 +61,10 @@ export interface ItemVote extends IdentificableDoc {
     date: number;
 }
 
-export type ItemVoteFromDB = ItemVote & {
+export interface ItemVoteFromDB extends Omit<ItemVote, 'itemId' | 'owner'> {
     itemId: string;
     owner: string;
-};
+}
 
 export interface Stock extends IdentificableDoc {
     qnt: number;
@@ -75,8 +75,9 @@ export interface Stock extends IdentificableDoc {
     itemId: Item;
 }
 
-export type StockFromDB = Stock & {
+export interface StockFromDB
+    extends Omit<Stock, 'roomId' | 'userId' | 'itemId'> {
     roomId: string;
     userId: string;
     itemId: string;
-};
+}

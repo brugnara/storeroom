@@ -52,7 +52,7 @@ export class Projecter<T extends IdentificableDoc> {
         field: string,
         value: T
     ) {
-        let result = value[field];
+        let result = value[field] ?? null;
 
         if (this.resolvers[field]) {
             result = this.resolvers[field](value);

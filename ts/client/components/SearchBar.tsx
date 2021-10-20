@@ -4,7 +4,6 @@ import { boundMethod } from 'autobind-decorator';
 import React from 'react';
 
 import { Container, Form, Icon } from 'react-bulma-components';
-import model from '../Model';
 
 import { Item, FindGetter } from '../../common/Types';
 import store from '../Store';
@@ -15,13 +14,14 @@ import './SearchBar.less';
 import { keyValuedResultsToArray } from '../../common/Helpers';
 
 import { debounce } from 'debounce';
+import { BUSLayer } from '../helpers/BUSLayer';
 
 export interface SearchBarState {
     results: Array<Item>;
     query: string;
 }
 
-export class SearchBar extends React.Component<{}, SearchBarState> {
+export class SearchBar extends BUSLayer<{}, SearchBarState> {
     public state: SearchBarState = {
         results: [],
         query: '',
@@ -33,7 +33,7 @@ export class SearchBar extends React.Component<{}, SearchBarState> {
         }
 
         const basePath = ['items', 'find', query, { to: 9 }],
-            items = await model.get<FindGetter<Item>>(
+            items = await this.model.get<FindGetter<Item>>(
                 [
                     ...basePath,
                     [
