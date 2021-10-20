@@ -2,9 +2,12 @@ import FalcorJsonGraph from 'falcor-json-graph';
 import FalcorRouter from 'falcor-router';
 import { ItemVoteFromDB } from '../../common/Types';
 import { Prefixer } from '../helpers/Prefixer';
+import { Projecter } from '../helpers/Projecter';
 import { BaseRouter } from './BaseRouter';
 
 export class ItemVotesRouter extends BaseRouter<ItemVoteFromDB> {
+    protected allowedFields: Projecter<ItemVoteFromDB> = null;
+
     byID(): FalcorRouter.RouteDefinition {
         const that = this;
 

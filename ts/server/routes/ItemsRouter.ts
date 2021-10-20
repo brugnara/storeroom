@@ -6,8 +6,11 @@ import { ItemFromDB } from '../../common/Types';
 import FalcorRouter from 'falcor-router';
 import FalcorJsonGraph, { Range } from 'falcor-json-graph';
 import { Prefixer } from '../helpers/Prefixer';
+import { Projecter } from '../helpers/Projecter';
 
 export class ItemsRouter extends BaseRouter<ItemFromDB> {
+    protected allowedFields: Projecter<ItemFromDB> = null;
+
     byID(): FalcorRouter.RouteDefinition {
         const that = this;
         return {

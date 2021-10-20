@@ -4,8 +4,11 @@ import { Prefixer } from '../helpers/Prefixer';
 import { BaseRouter } from './BaseRouter';
 import { Document } from 'mongodb';
 import FalcorJsonGraph from 'falcor-json-graph';
+import { Projecter } from '../helpers/Projecter';
 
 export class RoomsRouter extends BaseRouter<RoomFromDB> {
+    protected allowedFields: Projecter<RoomFromDB> = null;
+
     byID(): FalcorRouter.RouteDefinition {
         const that = this;
 

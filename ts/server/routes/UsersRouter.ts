@@ -4,6 +4,7 @@ import FalcorRouter from 'falcor-router';
 import { BaseRouter } from './BaseRouter';
 import { User } from '../../common/Types';
 import { Prefixer } from '../helpers/Prefixer';
+import { Projecter } from '../helpers/Projecter';
 
 const ANON_USER_NAME = 'Anonimo';
 
@@ -18,6 +19,8 @@ function extractUserProfile(user: Document): Document {
 }
 
 export class UsersRouter extends BaseRouter<User> {
+    protected allowedFields: Projecter<User> = null;
+
     byID(): FalcorRouter.RouteDefinition {
         const that = this;
 
