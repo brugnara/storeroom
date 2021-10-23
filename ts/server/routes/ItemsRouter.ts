@@ -1,11 +1,9 @@
 import { BaseRouter } from './BaseRouter';
 
-import { Document } from 'mongodb';
+import { Filter } from 'mongodb';
 
 import { ItemFromDB } from '../../common/Types';
-import FalcorRouter from 'falcor-router';
-import FalcorJsonGraph, { Range } from 'falcor-json-graph';
-import { Prefixer } from '../helpers/Prefixer';
+import FalcorJsonGraph from 'falcor-json-graph';
 import { Projecter } from '../helpers/Projecter';
 
 export class ItemsRouter extends BaseRouter<ItemFromDB> {
@@ -25,77 +23,43 @@ export class ItemsRouter extends BaseRouter<ItemFromDB> {
         }
     );
 
-    find(): FalcorRouter.RouteDefinition {
-        const that = this;
-
-        return {
-            route: Prefixer.join(this.prefix, 'find[{keys:terms}][{ranges}]'),
-            async get(pathSet: FalcorJsonGraph.PathSet) {
-                const range = pathSet.pop() as Array<Range>,
-                    ret = [];
-
-                let terms = pathSet.pop() as Array<string>;
-
-                if (range.length !== 1) {
-                    throw new Error('Only one range is supported');
-                }
-
-                terms = terms.map((term) => `${term}`.trim()).filter((term) => term.length > 0);
-
-                if (terms.length === 0) {
-                    throw new Error('Empty query :/');
-                }
-
-                const values = await that.collection
-                    .find(
+    protected async searchItems(
+        _userId: string,
+        term: string,
+        range: FalcorJsonGraph.Range
+    ): Promise<Array<ItemFromDB>> {
+        return await this.collection
+            .find(
+                {
+                    $or: [
                         {
-                            $or: terms.map((term) => ({
-                                $or: [
-                                    {
-                                        name: {
-                                            $regex: term,
-                                            $options: 'i',
-                                        },
-                                    },
-                                    {
-                                        productor: {
-                                            $regex: term,
-                                            $options: 'i',
-                                        },
-                                    },
-                                    {
-                                        cb: {
-                                            $regex: term,
-                                            $options: 'i',
-                                        },
-                                    },
-                                ],
-                            })),
+                            name: {
+                                $regex: term,
+                                $options: 'i',
+                            },
                         },
-                        { _id: 1 } as Document
-                    )
-                    .skip(range[0].from)
-                    .limit(Math.min(range[0].to + 1, 100))
-                    .toArray();
-
-                for (let i = range[0].from; i <= range[0].to; i++) {
-                    let value = null;
-
-                    if (values[i - range[0].from] != null) {
-                        value = that.$ref(values[i - range[0].from]._id);
-                        // value = FalcorJsonGraph.ref([ 'items', 'byID', values[i]._id]);
-                    }
-
-                    ret.push({
-                        value,
-                        path: [...pathSet, terms[0], i],
-                    });
+                        {
+                            productor: {
+                                $regex: term,
+                                $options: 'i',
+                            },
+                        },
+                        {
+                            cb: {
+                                $regex: term,
+                                $options: 'i',
+                            },
+                        },
+                    ],
+                } as Filter<ItemFromDB>,
+                {
+                    projection: {
+                        _id: 1,
+                    },
+                    skip: range.from,
+                    limit: range.to + 1,
                 }
-
-                that.log(ret);
-
-                return ret;
-            },
-        };
+            )
+            .toArray();
     }
 }

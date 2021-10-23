@@ -1,8 +1,7 @@
-import FalcorRouter from 'falcor-router';
 import { StockFromDB } from '../../common/Types';
-import { Prefixer } from '../helpers/Prefixer';
 import { BaseRouter } from './BaseRouter';
 import { Projecter } from '../helpers/Projecter';
+import { FindOptions } from 'mongodb';
 
 export class StockRoutes extends BaseRouter<StockFromDB> {
     protected allowedFields = new Projecter<StockFromDB>(
@@ -22,17 +21,19 @@ export class StockRoutes extends BaseRouter<StockFromDB> {
         }
     );
 
-    inRoom(): FalcorRouter.RouteDefinition {
-        return this.authenticated.keyedAndRangedResults(
-            Prefixer.join(
-                this.prefix,
-                'inRoom[{keys}][{ranges}]',
-                this.allowedFields
-            ),
-            (roomId: string, userId: string) => ({
-                roomId,
-                userId,
-            })
-        );
+    protected async findValues(
+        userId: string,
+        options?: FindOptions<StockFromDB>
+    ): Promise<Array<StockFromDB>> {
+        this.log('findValues', userId, options);
+
+        return await this.collection
+            .find(
+                {
+                    ownedBy: userId,
+                },
+                options
+            )
+            .toArray();
     }
 }

@@ -1,24 +1,30 @@
 import React from 'react';
-import { IdentificableDoc, Room } from '../../common/Types';
+import { IdentificableDoc, KeyValueResults, ListGetter, Stock } from '../../common/Types';
 import { BUSLayer } from '../helpers/BUSLayer';
 
 export type RoomProps = IdentificableDoc;
 
-export class RoomPage extends BUSLayer<RoomProps> {
+export interface RoomState {
+    stocks: KeyValueResults<Stock>;
+}
+export class RoomPage extends BUSLayer<RoomProps, RoomState> {
+    state: RoomState = {
+        stocks: {},
+    };
+
     async componentDidMount() {
-        const path = ['stocks', 'inRoom', this.props._id, { from: 0, to: 9 }];
+        const path = ['stocks', 'list', this.props._id, { from: 0, to: 9 }];
 
-        try {
-            const data = await this.model.get<Room>(
-                [...path, ['qnt', 'expire', 'added']],
-                [...path, 'userId', ['_id', 'name']],
-                [...path, 'itemId', ['_id', 'name', 'productor']]
-            );
+        const data = await this.model.get<ListGetter<Stock>>(
+            [...path, ['qnt', 'expire', 'added']],
+            [...path, 'userId', ['_id', 'name']],
+            [...path, 'itemId', ['_id', 'name', 'productor']]
+        );
 
-            console.log(data);
-        } catch (e) {
-            console.log(e);
-        }
+        console.log(data);
+        this.setState({
+            stocks: data.json.stocks.list,
+        });
     }
 
     render() {
@@ -26,6 +32,7 @@ export class RoomPage extends BUSLayer<RoomProps> {
             <div>
                 <h1>Room</h1>
                 <p>{this.props._id}</p>
+                <pre>{JSON.stringify(this.state.stocks, null, 2)}</pre>
             </div>
         );
     }

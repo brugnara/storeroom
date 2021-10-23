@@ -42,6 +42,15 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
         return await this.collection.find({}, options).toArray();
     }
 
+    protected searchItems(
+        userId: string,
+        term: string,
+        range: FalcorJsonGraph.Range
+    ): Promise<Array<T>> {
+        this.log('super.searchItems', userId, term, range);
+        throw new Error('Not implemented');
+    }
+
     constructor(prefix: string, collection: Collection<T>, routes?: MountableRouters) {
         if (!Prefixer.isValid) {
             throw new Error('Invalid prefix');
@@ -76,8 +85,50 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
         }
     }
 
+    protected populate(
+        ret: Array<FalcorJsonGraph.PathValue>,
+        value: T,
+        path: FalcorJsonGraph.PathSet,
+        fields?: Array<keyof T>
+    ) {
+        if (value == null) {
+            ret.push({
+                path,
+                value: null,
+            });
+
+            return;
+        }
+
+        if (!fields) {
+            this.log('No fields asked!!!!!');
+            ret.push({
+                path,
+                value,
+            });
+
+            return;
+        }
+
+        // iterate over fields and compose the response
+        if (!Array.isArray(fields)) {
+            fields = [fields];
+        }
+
+        fields.forEach((field) => {
+            if (this.patch && this.patch[field]) {
+                ret.push({
+                    path: [...path, field] as typeof path,
+                    value: this.patch[field](value),
+                });
+                return;
+            }
+            ret.push(this.allowedFields.resolve(path, field, value));
+        });
+    }
+
     public byID(): FalcorRouter.RouteDefinition {
-        const route = Prefixer.join(this.prefix, 'byID[{keys}]', this.allowedFields),
+        const route = Prefixer.join(this.prefix, 'byID[{keys:id}]', this.allowedFields),
             that = this;
 
         this.log('ROUTER:', this.authRequired ? 'AUTH' : 'UNAUTH', route);
@@ -92,7 +143,7 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
                     values = await that.getValuesByID(this.userId, ids, {
                         projection: (fields && that.allowedFields.pick(fields)) ?? null,
                     }),
-                    ret = [];
+                    ret: Array<FalcorJsonGraph.PathValue> = [];
 
                 that.log(ids, fields, values?.length ?? 0);
 
@@ -100,45 +151,51 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
                     const value: T = values.find((v: T) => v?._id === id) || null,
                         path = [...pathSet, id];
 
-                    if (value == null) {
-                        ret.push({
-                            path,
-                            value: null,
-                        });
-
-                        return;
-                    }
-
-                    if (!fields) {
-                        that.log('No fields asked!!!!!');
-                        ret.push({
-                            path,
-                            value,
-                        });
-
-                        return;
-                    }
-
-                    // iterate over fields and compose the response
-                    try {
-                        if (!Array.isArray(fields)) {
-                            fields = [fields];
-                        }
-
-                        fields.forEach((field) => {
-                            if (that.patch && that.patch[field]) {
-                                ret.push({
-                                    path: [...path, field],
-                                    value: that.patch[field](value),
-                                });
-                                return;
-                            }
-                            ret.push(that.allowedFields.resolve(path, field, value));
-                        });
-                    } catch (e) {
-                        console.log(e);
-                    }
+                    that.populate(ret, value, path, fields);
                 });
+
+                return ret;
+            },
+        };
+    }
+
+    public find(): FalcorRouter.RouteDefinition {
+        const route = Prefixer.join(this.prefix, 'find[{keys:terms}][{ranges}]'),
+            that = this;
+
+        return {
+            route,
+            async get(pathSet: FalcorJsonGraph.PathSet) {
+                that.checkAuth.call(this);
+
+                const ranges = pathSet.pop() as Array<FalcorJsonGraph.Range>,
+                    ret = [];
+
+                if (ranges.length !== 1) {
+                    throw new Error('Only one range is supported');
+                }
+
+                let terms = pathSet.pop() as Array<string>;
+                terms = terms.map((term) => `${term}`.trim()).filter((term) => term.length > 0);
+                const term = (terms && terms[0]) ?? null,
+                    range = ranges[0];
+
+                if (!term) {
+                    throw new Error('No term provided');
+                }
+
+                const items = await that.searchItems(this.userId, term, range);
+
+                for (let i = range.from; i <= range.to; i++) {
+                    const item = items[i],
+                        path = [...pathSet, term, i],
+                        value = item ? that.$ref(item._id) : null;
+
+                    ret.push({
+                        path,
+                        value,
+                    });
+                }
 
                 return ret;
             },
@@ -171,37 +228,10 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
                         });
 
                     for (let i = range.from; i <= range.to; i++) {
-                        const value = values[i];
+                        const value = values[i],
+                            path: FalcorJsonGraph.PathSet = [...pathSet, i];
 
-                        if (value == null) {
-                            ret.push({
-                                path: [...pathSet, i],
-                                value: null,
-                            });
-
-                            continue;
-                        }
-
-                        if (!fields) {
-                            ret.push({
-                                path: [...pathSet, i],
-                                value,
-                            });
-
-                            continue;
-                        }
-
-                        // iterate over fields and compose the response
-                        fields.forEach((field) => {
-                            if (that.patch && that.patch[field]) {
-                                ret.push({
-                                    path: [...pathSet, i, field],
-                                    value: that.patch[field](value),
-                                });
-                                return;
-                            }
-                            ret.push(that.allowedFields.resolve([...pathSet, i], field, value));
-                        });
+                        that.populate(ret, value, path, fields);
                     }
                 }
 
@@ -210,7 +240,10 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
         };
     }
 
-    protected keyedAndRangedResults(route: string, getQuery: (id: string, userId: string) => Filter<T>) {
+    protected keyedAndRangedResults(
+        route: string,
+        getQuery: (id: string, userId: string) => Filter<T>
+    ) {
         const that = this;
 
         console.log('requires auth?', this.authRequired);

@@ -42,8 +42,12 @@ export class Projecter<T extends IdentificableDoc> {
         return JSON.stringify(Object.keys(this.projection).filter((key) => this.projection[key]));
     }
 
-    public resolve(initialPath: Array<FalcorJsonGraph.KeySet>, field: keyof T, value: T) {
-        let result: T[keyof T] | FalcorJsonGraph.Reference = value[field] ?? null;
+    public resolve(
+        initialPath: Array<FalcorJsonGraph.KeySet>,
+        field: keyof T,
+        value: T
+    ): FalcorJsonGraph.PathValue {
+        let result: T[keyof T] | FalcorJsonGraph.Reference = (value && value[field]) ?? null;
 
         if (this.resolvers && this.resolvers[field]) {
             result = this.resolvers[field](value);
@@ -51,7 +55,7 @@ export class Projecter<T extends IdentificableDoc> {
 
         return {
             value: result,
-            path: [...initialPath, field],
+            path: [...initialPath, field] as typeof initialPath,
         };
     }
 }
