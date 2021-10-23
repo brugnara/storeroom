@@ -34,20 +34,9 @@ export class SearchBar extends BUSLayer<{}, SearchBarState> {
 
         const basePath = ['items', 'find', query, { to: 9 }],
             items = await this.model.get<FindGetter<Item>>(
-                [
-                    ...basePath,
-                    [
-                        '_id',
-                        'name',
-                        'cb',
-                        'productor',
-                        'um',
-                        'submitted',
-                        'qnt',
-                    ],
-                ],
+                [...basePath, ['_id', 'name', 'cb', 'productor', 'um', 'submitted', 'qnt']],
                 [...basePath, 'createdBy', ['_id', 'name']],
-                [...basePath, 'votes', 'value']
+                [...basePath, 'votes', ['voteCount']]
             );
 
         console.log(items);
@@ -102,8 +91,8 @@ export class SearchBar extends BUSLayer<{}, SearchBarState> {
             return null;
         }
 
-        const cards = this.state.results.map((result) => {
-            return <ItemCard key={result._id} {...result} />;
+        const cards = this.state.results.map((result, i) => {
+            return <ItemCard key={i} {...result} />;
         });
 
         return (
@@ -127,11 +116,7 @@ export class SearchBar extends BUSLayer<{}, SearchBarState> {
                     <Icon align="left">
                         <FontAwesomeIcon icon={faSearch} />
                     </Icon>
-                    <Icon
-                        align="right"
-                        className="is-clickable"
-                        onClick={this.onReset}
-                    >
+                    <Icon align="right" className="is-clickable" onClick={this.onReset}>
                         <FontAwesomeIcon icon={faTimes} />
                     </Icon>
                 </Form.Control>

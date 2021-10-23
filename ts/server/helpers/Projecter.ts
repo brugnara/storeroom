@@ -15,18 +15,14 @@ export function fieldsToProjection(fields: Array<string>, _id = 1): Document {
 
 export class Projecter<T extends IdentificableDoc> {
     protected projection: Readonly<Partial<Record<keyof T, number | boolean>>>;
-    protected resolvers: Partial<
-        Record<keyof T, (value: T) => FalcorJsonGraph.Reference>
-    >;
+    protected resolvers: Partial<Record<keyof T, (value: T) => FalcorJsonGraph.Reference>>;
 
     constructor(
         projection: Partial<Record<keyof T, number | boolean>>,
-        resolvers?: Partial<
-            Record<keyof T, (value: T) => FalcorJsonGraph.Reference>
-        >
+        resolvers?: Partial<Record<keyof T, (value: T) => FalcorJsonGraph.Reference>>
     ) {
         this.projection = clone(projection);
-        this.resolvers = resolvers;
+        this.resolvers = resolvers || null;
     }
 
     public get project(): Readonly<Document> {
@@ -43,20 +39,13 @@ export class Projecter<T extends IdentificableDoc> {
     }
 
     public toString(): string {
-        return JSON.stringify(
-            Object.keys(this.projection).filter((key) => this.projection[key])
-        );
+        return JSON.stringify(Object.keys(this.projection).filter((key) => this.projection[key]));
     }
 
-    public resolve(
-        initialPath: Array<FalcorJsonGraph.KeySet>,
-        field: keyof T,
-        value: T
-    ) {
-        let result: T[keyof T] | FalcorJsonGraph.Reference =
-            value[field] ?? null;
+    public resolve(initialPath: Array<FalcorJsonGraph.KeySet>, field: keyof T, value: T) {
+        let result: T[keyof T] | FalcorJsonGraph.Reference = value[field] ?? null;
 
-        if (this.resolvers[field]) {
+        if (this.resolvers && this.resolvers[field]) {
             result = this.resolvers[field](value);
         }
 

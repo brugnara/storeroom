@@ -6,7 +6,7 @@ export interface Item extends IdentificableDoc {
     qnt: number;
     createdBy: User;
     submitted: number;
-    votes: number;
+    votes?: Pick<ItemVoteFromDB, 'voteCount'>;
 }
 
 export type ItemFromDB = Omit<Item, 'createdBy'> & {
@@ -27,22 +27,11 @@ export interface IdentificableDoc {
 
 export type KeyValueResults<T> = Record<string, T>;
 
-export type FindGetter<T> = Record<
-    CompatibleRouters,
-    { find: KeyValueResults<KeyValueResults<T>> }
->;
+export type FindGetter<T> = Record<CompatibleRouters, { find: KeyValueResults<KeyValueResults<T>> }>;
 
-export type ListGetter<T> = Record<
-    CompatibleRouters,
-    { list: KeyValueResults<T> }
->;
+export type ListGetter<T> = Record<CompatibleRouters, { list: KeyValueResults<T> }>;
 
-export type CompatibleRouters =
-    | 'users'
-    | 'items'
-    | 'rooms'
-    | 'itemVotes'
-    | 'stocks';
+export type CompatibleRouters = 'users' | 'items' | 'rooms' | 'itemVotes' | 'stocks';
 
 export interface Stringable {
     toString(): string;
@@ -68,6 +57,7 @@ export interface ItemVote extends IdentificableDoc {
 export interface ItemVoteFromDB extends Omit<ItemVote, 'itemId' | 'owner'> {
     itemId: string;
     owner: string;
+    voteCount?: number;
 }
 
 export interface Stock extends IdentificableDoc {
@@ -79,8 +69,7 @@ export interface Stock extends IdentificableDoc {
     itemId: Item;
 }
 
-export interface StockFromDB
-    extends Omit<Stock, 'roomId' | 'userId' | 'itemId'> {
+export interface StockFromDB extends Omit<Stock, 'roomId' | 'userId' | 'itemId'> {
     roomId: string;
     userId: string;
     itemId: string;

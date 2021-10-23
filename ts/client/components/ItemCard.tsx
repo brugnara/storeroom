@@ -18,9 +18,7 @@ export class ItemCard extends React.Component<Item> {
                             <Columns.Column size={8}>
                                 <Media>
                                     <Media.Item>
-                                        <Heading size={4}>
-                                            {this.props.name}
-                                        </Heading>
+                                        <Heading size={4}>{this.props.name}</Heading>
                                         <Heading subtitle size={6}>
                                             {this.props.productor}
                                         </Heading>
@@ -31,17 +29,11 @@ export class ItemCard extends React.Component<Item> {
                                 <div>
                                     <a href="#">{this.props.cb}</a>
                                 </div>
-                                <UserMiniBox
-                                    {...this.props.createdBy}
-                                    prepend={'Inserito da'}
-                                />
+                                <UserMiniBox {...this.props.createdBy} prepend={'Inserito da'} />
                                 <div>
-                                    il{' '}
-                                    <time dateTime={this.submitted}>
-                                        {this.submitted}
-                                    </time>
+                                    il <time dateTime={this.submitted}>{this.submitted}</time>
                                 </div>
-                                <div>{this.props.votes} voti</div>
+                                <div>{this.props.votes?.voteCount ?? 0} voti</div>
                             </Columns.Column>
                         </Columns>
                     </Content>

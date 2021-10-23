@@ -7,13 +7,7 @@ import falcorExpress from 'falcor-express';
 import Router from 'falcor-router';
 
 import { UsersRouter } from './routes/UsersRouter';
-import {
-    ItemFromDB,
-    ItemVoteFromDB,
-    RoomFromDB,
-    StockFromDB,
-    User,
-} from '../common/Types';
+import { ItemFromDB, ItemVoteFromDB, RoomFromDB, StockFromDB, User } from '../common/Types';
 import { ItemsRouter } from './routes/ItemsRouter';
 import { RoomsRouter } from './routes/RoomsRouter';
 import { ItemVotesRouter } from './routes/ItemVotesRouter';
@@ -27,8 +21,7 @@ const app: Application = express(),
         .readFileSync(path.join(__dirname, '../../public/index.html'), 'utf8')
         .replace(/%PUBLIC_URL%/g, publicUrl),
     mongoClient = new MongoClient(
-        process.env.MONGODB_URI ??
-            'mongodb://storeroom:password@0.0.0.0:27017/storeroom'
+        process.env.MONGODB_URI ?? 'mongodb://storeroom:password@0.0.0.0:27017/storeroom'
     );
 
 FAKE_USER_ID && console.log('FAKE_USER_ID is:', FAKE_USER_ID);
@@ -40,18 +33,12 @@ async function main() {
         collectionUsers = mongoClient.db().collection<User>('users'),
         collectionRooms = mongoClient.db().collection<RoomFromDB>('rooms'),
         collectionStocks = mongoClient.db().collection<StockFromDB>('stock'),
-        collectionItemVotes = mongoClient
-            .db()
-            .collection<ItemVoteFromDB>('item_votes'),
+        collectionItemVotes = mongoClient.db().collection<ItemVoteFromDB>('item_votes'),
         // routers
         usersRouter = new UsersRouter('users', collectionUsers),
-        itemVotesRouter = new ItemVotesRouter(
-            'itemVotes',
-            collectionItemVotes,
-            {
-                users: usersRouter,
-            }
-        ),
+        itemVotesRouter = new ItemVotesRouter('itemVotes', collectionItemVotes, {
+            users: usersRouter,
+        }),
         itemsRouter = new ItemsRouter('items', collectionItems, {
             users: usersRouter,
             itemVotes: itemVotesRouter,
@@ -74,8 +61,8 @@ async function main() {
             //
             itemVotesRouter.byID(),
             //
-            roomsRouter.byID(),
-            roomsRouter.list(),
+            roomsRouter.authenticated.byID(),
+            roomsRouter.authenticated.list(),
             //
             // stocksRouter.byID(),
             stocksRouter.inRoom(),

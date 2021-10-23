@@ -17,10 +17,10 @@ export class ItemsRouter extends BaseRouter<ItemFromDB> {
             createdBy: 1,
             cb: 1,
             submitted: 1,
+            votes: 1,
         },
         {
-            createdBy: (doc: ItemFromDB) =>
-                this.routes.users.$ref(doc.createdBy),
+            createdBy: (doc: ItemFromDB) => this.routes.users.$ref(doc.createdBy),
             votes: (doc: ItemFromDB) => this.routes.itemVotes.$ref(doc._id),
         }
     );
@@ -40,9 +40,7 @@ export class ItemsRouter extends BaseRouter<ItemFromDB> {
                     throw new Error('Only one range is supported');
                 }
 
-                terms = terms
-                    .map((term) => `${term}`.trim())
-                    .filter((term) => term.length > 0);
+                terms = terms.map((term) => `${term}`.trim()).filter((term) => term.length > 0);
 
                 if (terms.length === 0) {
                     throw new Error('Empty query :/');
@@ -95,34 +93,6 @@ export class ItemsRouter extends BaseRouter<ItemFromDB> {
                 }
 
                 that.log(ret);
-
-                return ret;
-            },
-        };
-    }
-
-    list(): FalcorRouter.RouteDefinition {
-        const that = this;
-
-        return {
-            route: Prefixer.list(this.prefix),
-            async get(pathSet: FalcorJsonGraph.PathSet) {
-                const range = pathSet.pop() as Range,
-                    values = await that.collection
-                        .find({}, { _id: 1 } as Document)
-                        .sort({})
-                        .skip(range[0].from)
-                        .limit(range[0].to)
-                        .toArray();
-
-                const ret = [];
-
-                values.forEach((value, index) => {
-                    ret.push({
-                        path: [...pathSet, index + range[0].from],
-                        value: that.$ref(value._id),
-                    });
-                });
 
                 return ret;
             },

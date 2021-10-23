@@ -11,7 +11,11 @@ function patchName(name: string): string {
 }
 
 export class UsersRouter extends BaseRouter<User> {
-    protected allowedFields: Projecter<User> = null;
+    protected allowedFields = new Projecter<User>({
+        _id: 1,
+        name: 1,
+    });
+
     protected patch = {
         name: (doc: User) => patchName(doc.profile?.name),
     };
