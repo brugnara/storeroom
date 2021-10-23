@@ -77,7 +77,7 @@ async function main() {
             roomsRouter.byID(),
             roomsRouter.list(),
             //
-            stocksRouter.byID(),
+            // stocksRouter.byID(),
             stocksRouter.inRoom(),
         ]),
         // Creating a constructor for a class that derives from BaseRouter

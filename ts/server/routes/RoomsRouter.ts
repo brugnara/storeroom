@@ -2,56 +2,22 @@ import FalcorRouter from 'falcor-router';
 import { RoomFromDB } from '../../common/Types';
 import { Prefixer } from '../helpers/Prefixer';
 import { BaseRouter } from './BaseRouter';
-import { Document } from 'mongodb';
 import FalcorJsonGraph from 'falcor-json-graph';
 import { Projecter } from '../helpers/Projecter';
 
 export class RoomsRouter extends BaseRouter<RoomFromDB> {
-    protected allowedFields: Projecter<RoomFromDB> = null;
-
-    byID(): FalcorRouter.RouteDefinition {
-        const that = this;
-
-        return {
-            route: Prefixer.byID(this.prefix),
-            async get(pathSet) {
-                if (!this.authenticated) {
-                    throw new Error('Not logged in');
-                }
-
-                const ids = pathSet.pop(),
-                    ret = [];
-
-                console.log(ids);
-
-                // todo: fix this horseshit
-                (
-                    await that.collection
-                        .find<RoomFromDB>({ _id: { $in: ids } } as Document)
-                        .toArray()
-                ).forEach((room) => {
-                    ret.push(
-                        {
-                            path: [...pathSet, room._id, 'name'],
-                            value: room.name,
-                        },
-                        {
-                            path: [...pathSet, room._id, 'submitted'],
-                            value: room.submitted,
-                        },
-                        {
-                            path: [...pathSet, room._id, 'ownedBy'],
-                            value: that.routes.users.$ref(room.ownedBy),
-                        }
-                    );
-                });
-
-                console.log(ret);
-
-                return ret;
-            },
-        };
-    }
+    protected allowedFields: Projecter<RoomFromDB> = new Projecter<RoomFromDB>(
+        {
+            _id: 1,
+            name: 1,
+            submitted: 1,
+            starred: 1,
+            ownedBy: 1,
+        },
+        {
+            ownedBy: (doc: RoomFromDB) => this.routes.users.$ref(doc.ownedBy),
+        }
+    );
 
     list(): FalcorRouter.RouteDefinition {
         const that = this;

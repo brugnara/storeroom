@@ -1,5 +1,5 @@
 import { Prefixer } from '../helpers/Prefixer';
-import { Collection, Filter } from 'mongodb';
+import { Collection, Filter, FindOptions } from 'mongodb';
 import FalcorJsonGraph from 'falcor-json-graph';
 import FalcorRouter from 'falcor-router';
 import { CompatibleRouters, IdentificableDoc } from '../../common/Types';
@@ -15,9 +15,29 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
     protected routes: MountableRouters;
     protected abstract allowedFields: Projecter<T>;
     protected authRequired: boolean = false;
+    protected patch: Partial<
+        Record<keyof T, (document: T) => FalcorJsonGraph.Key>
+    > = null;
 
-    // TODO: move me here!
-    abstract byID(): FalcorRouter.RouteDefinition;
+    protected log(...args: any) {
+        console.log(`[${this.prefix}]`, ...args);
+    }
+
+    protected async getValues(
+        userId: string,
+        ids: Array<string>,
+        options?: FindOptions<T>
+    ): Promise<Array<T>> {
+        this.log('getValues', userId, ids, options);
+        return await this.collection
+            .find(
+                {
+                    _id: { $in: ids },
+                } as Filter<T>,
+                options
+            )
+            .toArray();
+    }
 
     constructor(
         prefix: string,
@@ -34,6 +54,7 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
     }
 
     public $ref(value: string): FalcorJsonGraph.Reference {
+        this.log('$ref', value);
         return FalcorJsonGraph.ref([...this.prefix.split('.'), 'byID', value]);
     }
 
@@ -56,6 +77,81 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
         }
     }
 
+    public byID(): FalcorRouter.RouteDefinition {
+        const route = Prefixer.join(
+                this.prefix,
+                'byID[{keys}]',
+                this.allowedFields
+            ),
+            that = this;
+
+        return {
+            route,
+            async get(pathSet: FalcorJsonGraph.PathSet) {
+                try {
+                    const fields =
+                            that.allowedFields &&
+                            (pathSet.pop() as Array<keyof T>),
+                        ids = pathSet.pop() as Array<string>,
+                        values = await that.getValues(this.userId, ids, {
+                            projection:
+                                (fields && that.allowedFields.pick(fields)) ??
+                                null,
+                        }),
+                        ret = [];
+
+                    that.log(ids, fields, values?.length ?? 0);
+
+                    ids.forEach((id) => {
+                        const value: T =
+                                values.find((v: T) => v?._id === id) || null,
+                            path = [...pathSet, id];
+
+                        if (value == null) {
+                            ret.push({
+                                path,
+                                value: null,
+                            });
+
+                            return;
+                        }
+
+                        if (!fields) {
+                            that.log('No fields asked!!!!!');
+                            ret.push({
+                                path,
+                                value,
+                            });
+
+                            return;
+                        }
+
+                        // iterate over fields and compose the response
+                        fields.forEach((field) => {
+                            if (that.patch && that.patch[field]) {
+                                ret.push({
+                                    path: [...path, field],
+                                    value: that.patch[field](value),
+                                });
+                                return;
+                            }
+                            ret.push(
+                                that.allowedFields.resolve(path, field, value)
+                            );
+                        });
+                    });
+
+                    that.log('ROSALBA', ret);
+
+                    return ret;
+                } catch (e) {
+                    that.log(e);
+                    throw e;
+                }
+            },
+        };
+    }
+
     protected keyedAndRangedResults(
         route: string,
         getQuery: (id: string, userId: string) => Filter<T>
@@ -69,7 +165,7 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
             async get(pathSet: FalcorJsonGraph.PathSet) {
                 that.checkAuth();
 
-                const askedFields = pathSet.pop() as Array<string>,
+                const askedFields = pathSet.pop() as Array<keyof T>,
                     range = pathSet.pop() as Array<FalcorJsonGraph.Range>,
                     ids = pathSet.pop() as Array<string>,
                     ret = [];

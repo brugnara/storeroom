@@ -8,13 +8,17 @@ export class RoomPage extends BUSLayer<RoomProps> {
     async componentDidMount() {
         const path = ['stocks', 'inRoom', this.props._id, { from: 0, to: 9 }];
 
-        const data = await this.model.get<Room>(
-            [...path, ['qnt', 'expire', 'added']],
-            [...path, 'userId', ['_id', 'name']],
-            [...path, 'itemId', ['_id', 'name', 'productor']]
-        );
+        try {
+            const data = await this.model.get<Room>(
+                [...path, ['qnt', 'expire', 'added']],
+                [...path, 'userId', ['_id', 'name']],
+                [...path, 'itemId', ['_id', 'name', 'productor']]
+            );
 
-        console.log(data);
+            console.log(data);
+        } catch (e) {
+            console.log(e);
+        }
     }
 
     render() {

@@ -9,52 +9,21 @@ import { Prefixer } from '../helpers/Prefixer';
 import { Projecter } from '../helpers/Projecter';
 
 export class ItemsRouter extends BaseRouter<ItemFromDB> {
-    protected allowedFields: Projecter<ItemFromDB> = null;
-
-    byID(): FalcorRouter.RouteDefinition {
-        const that = this;
-        return {
-            route: Prefixer.byID(this.prefix),
-            async get(pathSet: FalcorJsonGraph.PathSet) {
-                const ids = pathSet.pop() as Array<string>,
-                    values = await that.collection
-                        .find(
-                            {
-                                _id: { $in: ids },
-                            },
-                            {
-                                _id: 1,
-                                productor: 1,
-                                name: 1,
-                                createdBy: 1,
-                                cb: 1,
-                                submitted: 1,
-                            } as Document
-                        )
-                        .toArray(),
-                    ret = [];
-
-                values.forEach((value) => {
-                    ret.push(
-                        {
-                            value,
-                            path: [...pathSet, value._id],
-                        },
-                        {
-                            value: that.routes.itemVotes.$ref(value._id),
-                            path: [...pathSet, value._id, 'votes'],
-                        },
-                        {
-                            value: that.routes.users.$ref(value.createdBy),
-                            path: [...pathSet, value._id, 'createdBy'],
-                        }
-                    );
-                });
-
-                return ret;
-            },
-        };
-    }
+    protected allowedFields = new Projecter<ItemFromDB>(
+        {
+            _id: 1,
+            productor: 1,
+            name: 1,
+            createdBy: 1,
+            cb: 1,
+            submitted: 1,
+        },
+        {
+            createdBy: (doc: ItemFromDB) =>
+                this.routes.users.$ref(doc.createdBy),
+            votes: (doc: ItemFromDB) => this.routes.itemVotes.$ref(doc._id),
+        }
+    );
 
     find(): FalcorRouter.RouteDefinition {
         const that = this;
@@ -124,6 +93,8 @@ export class ItemsRouter extends BaseRouter<ItemFromDB> {
                         path: [...pathSet, terms[0], i],
                     });
                 }
+
+                that.log(ret);
 
                 return ret;
             },

@@ -9,12 +9,16 @@ export interface Item extends IdentificableDoc {
     votes: number;
 }
 
-export interface ItemFromDB extends Omit<Item, 'createdBy'> {
+export type ItemFromDB = Omit<Item, 'createdBy'> & {
     createdBy: string;
-}
+};
 
 export interface User extends IdentificableDoc {
     name: string;
+    profile?: {
+        name?: string;
+        terms?: boolean;
+    };
 }
 
 export interface IdentificableDoc {
