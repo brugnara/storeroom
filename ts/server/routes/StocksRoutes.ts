@@ -1,7 +1,8 @@
 import { StockFromDB } from '../../common/Types';
 import { BaseRouter } from './BaseRouter';
 import { Projecter } from '../helpers/Projecter';
-import { FindOptions } from 'mongodb';
+import { Filter, FindOptions } from 'mongodb';
+import FalcorJsonGraph from 'falcor-json-graph';
 
 export class StockRoutes extends BaseRouter<StockFromDB> {
     protected allowedFields = new Projecter<StockFromDB>(
@@ -33,6 +34,27 @@ export class StockRoutes extends BaseRouter<StockFromDB> {
                     ownedBy: userId,
                 },
                 options
+            )
+            .toArray();
+    }
+
+    protected async searchItems(
+        _userId: string,
+        roomId: string,
+        range: FalcorJsonGraph.Range
+    ): Promise<Array<StockFromDB>> {
+        return await this.collection
+            .find(
+                {
+                    roomId,
+                } as Filter<StockFromDB>,
+                {
+                    projection: {
+                        _id: 1,
+                    },
+                    skip: range.from,
+                    limit: range.to + 1,
+                }
             )
             .toArray();
     }

@@ -13,7 +13,7 @@ export class RoomPage extends BUSLayer<RoomProps, RoomState> {
     };
 
     async componentDidMount() {
-        const path = ['stocks', 'list', this.props._id, { from: 0, to: 9 }];
+        const path = ['stocks', 'find', this.props._id, { from: 0, to: 9 }];
 
         const data = await this.model.get<ListGetter<Stock>>(
             [...path, ['qnt', 'expire', 'added']],
