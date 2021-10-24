@@ -1,9 +1,7 @@
-import { faSearch, faTimes } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { boundMethod } from 'autobind-decorator';
 import React from 'react';
 
-import { Box, Button, Container, Form, Icon } from 'react-bulma-components';
+import { Container } from 'react-bulma-components';
 
 import { Item, FindGetter, CountableResult } from '../../common/Types';
 import store from '../Store';
@@ -16,6 +14,8 @@ import { debounce } from 'debounce';
 import { BUSLayer } from '../helpers/BUSLayer';
 import { ItemsRender } from '../components/ItemsRender';
 import FalcorJsonGraph from 'falcor-json-graph';
+import { SearchBar, SearchBarProps } from '../components/SearchBar';
+import { PaginatorInfo } from '../helpers/Paginator';
 
 const PAGE_SIZE = 10;
 
@@ -68,8 +68,10 @@ export class ItemsPage extends BUSLayer<{}, ItemsPageState> {
     }
 
     @boundMethod
-    onChange(event: React.ChangeEvent<HTMLInputElement>): void {
-        const query: string = event.target.value;
+    onChange(query: string): void {
+        if (query == null) {
+            return this.onReset();
+        }
 
         this.setState({ query, page: 0 });
         this.search();
@@ -115,75 +117,25 @@ export class ItemsPage extends BUSLayer<{}, ItemsPageState> {
         });
     }
 
-    @boundMethod
-    onNext(): void {
-        this.setState((state) => ({
-            page: state.page + 1,
-        }));
-    }
-
-    @boundMethod
-    onPrev(): void {
-        this.setState((state) => ({
-            page: state.page - 1,
-        }));
-    }
-
-    canNext(): boolean {
-        return (this.state.page + 1) * PAGE_SIZE < this.state.count;
-    }
-
-    canPrev(): boolean {
-        return this.state.page > 0;
-    }
-
-    renderController(): React.ReactNode {
-        let infoBox: React.ReactNode = null;
-
-        if (this.state.count > 0) {
-            infoBox = (
-                <>
-                    <h1 className="my-3">
-                        Pagina {this.state.page + 1}, stai vedendo {this.state.results.length}{' '}
-                        risultati su {this.state.count ?? 0} totali
-                    </h1>
-                    <div className="is-flex is-justify-content-space-between">
-                        <Button color="primary" disabled={!this.canPrev()} onClick={this.onPrev}>
-                            Pagina precedente
-                        </Button>
-                        <Button color="primary" disabled={!this.canNext()} onClick={this.onNext}>
-                            Pagina successiva
-                        </Button>
-                    </div>
-                </>
-            );
-        }
-
-        return (
-            <Box className="stick-it">
-                <Form.Control>
-                    <Form.Input
-                        size="medium"
-                        value={this.state.query}
-                        onChange={this.onChange}
-                        placeholder="Comincia la ricerca da qui :)"
-                    />
-                    <Icon align="left">
-                        <FontAwesomeIcon icon={faSearch} />
-                    </Icon>
-                    <Icon align="right" className="is-clickable" onClick={this.onReset}>
-                        <FontAwesomeIcon icon={faTimes} />
-                    </Icon>
-                </Form.Control>
-                {infoBox}
-            </Box>
-        );
+    get paginator(): PaginatorInfo {
+        return {
+            currentPage: this.state.page,
+            pageSize: PAGE_SIZE,
+            total: this.state.count,
+            currentPageSize: this.state.results.length,
+        };
     }
 
     render(): React.ReactNode {
+        const props: SearchBarProps = {
+            paginator: this.paginator,
+            onSearch: this.onChange,
+            onSetPage: (page: number) => this.setState({ page }),
+        };
+
         return (
             <Container className="items-page mb-5">
-                {this.renderController()}
+                <SearchBar {...props} />
 
                 <ItemsRender items={this.state.results} count={this.state.count} />
             </Container>

@@ -13,7 +13,7 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
     protected routes: MountableRouters;
     protected abstract allowedFields: Projecter<T>;
     protected authRequired: boolean = false;
-    protected patch: Partial<Record<keyof T, (document: T) => FalcorJsonGraph.Key>> = null;
+    protected patch: Partial<Record<keyof T, (document: T) => Promise<FalcorJsonGraph.Key>>> = null;
 
     protected log(...args: any) {
         console.log(`[${this.prefix}]`, ...args);
@@ -91,12 +91,12 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
         }
     }
 
-    protected populate(
+    protected async populate(
         ret: Array<FalcorJsonGraph.PathValue>,
         value: T,
         path: FalcorJsonGraph.PathSet,
         fields?: Array<keyof T>
-    ) {
+    ): Promise<void> {
         if (value == null) {
             ret.push({
                 path,
@@ -121,16 +121,20 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
             fields = [fields];
         }
 
-        fields.forEach((field) => {
+        let fieldsLen = fields.length;
+
+        while (fieldsLen--) {
+            const field = fields[fieldsLen];
+
             if (this.patch && this.patch[field]) {
                 ret.push({
                     path: [...path, field] as typeof path,
-                    value: this.patch[field](value),
+                    value: await this.patch[field](value),
                 });
                 return;
             }
             ret.push(this.allowedFields.resolve(path, field, value));
-        });
+        }
     }
 
     public byID(): FalcorRouter.RouteDefinition {
@@ -153,12 +157,14 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
 
                 that.log(ids, fields, values?.length ?? 0);
 
-                ids.forEach((id) => {
-                    const value: T = values.find((v: T) => v?._id === id) || null,
+                let idsLen = ids.length;
+                while (idsLen--) {
+                    const id = ids[idsLen],
+                        value: T = values.find((v: T) => v?._id === id) || null,
                         path = [...pathSet, id];
 
-                    that.populate(ret, value, path, fields);
-                });
+                    await that.populate(ret, value, path, fields);
+                }
 
                 return ret;
             },
@@ -247,7 +253,7 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
                         const value = values[i - range.from],
                             path: FalcorJsonGraph.PathSet = [...pathSet, i];
 
-                        that.populate(ret, value, path, fields);
+                        await that.populate(ret, value, path, fields);
                     }
                 }
 

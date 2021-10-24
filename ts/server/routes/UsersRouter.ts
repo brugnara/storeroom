@@ -4,7 +4,7 @@ import { Projecter } from '../helpers/Projecter';
 
 const ANON_USER_NAME = 'Anonimo';
 
-function patchName(name: string): string {
+async function patchName(name: string): Promise<string> {
     name = (name ?? ANON_USER_NAME).split(/@|\s|\./)[0];
 
     return name[0].toUpperCase() + name.slice(1);
