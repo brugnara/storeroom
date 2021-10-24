@@ -1,6 +1,6 @@
 import React from 'react';
 
-export class Signup extends React.Component {
+export class SignupPage extends React.Component {
     public render(): React.ReactNode {
         return 'Signup!';
     }

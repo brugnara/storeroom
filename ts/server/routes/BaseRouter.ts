@@ -19,7 +19,7 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
         console.log(`[${this.prefix}]`, ...args);
     }
 
-    protected async getValuesByID(
+    protected async queryByID(
         userId: string,
         ids: Array<string>,
         options?: FindOptions<T>
@@ -36,17 +36,23 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
             .toArray();
     }
 
-    protected async getListedValues(userId: string, options?: FindOptions<T>): Promise<Array<T>> {
+    protected async queryAll(userId: string, options?: FindOptions<T>): Promise<Array<T>> {
         this.log('super.getListedValues', userId, options);
 
         return await this.collection.find({}, options).toArray();
+    }
+
+    protected async countAll(userId: string): Promise<number> {
+        this.log('super.countAll', userId);
+
+        return await this.collection.countDocuments({});
     }
 
     protected searchItems(
         userId: string,
         term: string,
         range: FalcorJsonGraph.Range
-    ): Promise<Array<T>> {
+    ): Promise<[Array<T>, number]> {
         this.log('super.searchItems', userId, term, range);
         throw new Error('Not implemented');
     }
@@ -140,7 +146,7 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
 
                 let fields = that.allowedFields && (pathSet.pop() as Array<keyof T>),
                     ids = pathSet.pop() as Array<string>,
-                    values = await that.getValuesByID(this.userId, ids, {
+                    values = await that.queryByID(this.userId, ids, {
                         projection: (fields && that.allowedFields.pick(fields)) ?? null,
                     }),
                     ret: Array<FalcorJsonGraph.PathValue> = [];
@@ -184,10 +190,15 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
                     throw new Error('No term provided');
                 }
 
-                const items = await that.searchItems(this.userId, term, range);
+                const [items, count] = await that.searchItems(this.userId, term, range);
+
+                ret.push({
+                    path: [...pathSet, term, 'count'],
+                    value: count,
+                });
 
                 for (let i = range.from; i <= range.to; i++) {
-                    const item = items[i],
+                    const item = items[i - range.from],
                         path = [...pathSet, term, i],
                         value = item ? that.$ref(item._id) : null;
 
@@ -217,18 +228,23 @@ export abstract class BaseRouter<T extends IdentificableDoc> {
                     ranges = pathSet.pop() as Array<FalcorJsonGraph.Range>,
                     ret = [];
 
-                let rangesLen = ranges.length;
+                // add count to ret
+                ret.push({
+                    path: [...pathSet, 'count'],
+                    value: await that.countAll(this.userId),
+                });
 
+                let rangesLen = ranges.length;
                 while (rangesLen--) {
                     const range = ranges[rangesLen],
-                        values = await that.getListedValues(this.userId, {
+                        values = await that.queryAll(this.userId, {
                             projection: (fields && that.allowedFields.pick(fields)) ?? null,
                             skip: range.from,
-                            limit: range.to,
+                            limit: range.to - range.from + 1,
                         });
 
                     for (let i = range.from; i <= range.to; i++) {
-                        const value = values[i],
+                        const value = values[i - range.from],
                             path: FalcorJsonGraph.PathSet = [...pathSet, i];
 
                         that.populate(ret, value, path, fields);

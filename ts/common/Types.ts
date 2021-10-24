@@ -27,7 +27,16 @@ export interface IdentificableDoc {
 
 export type KeyValueResults<T> = Record<string, T>;
 
-export type FindGetter<T> = Record<CompatibleRouters, { find: KeyValueResults<KeyValueResults<T>> }>;
+export interface CountableResult {
+    count?: number;
+}
+
+export type FindGetter<T> = Record<
+    CompatibleRouters,
+    {
+        find: KeyValueResults<CountableResult & KeyValueResults<T>>;
+    }
+>;
 
 export type ListGetter<T> = Record<CompatibleRouters, { list: KeyValueResults<T> }>;
 

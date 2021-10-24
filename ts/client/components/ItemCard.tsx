@@ -21,14 +21,14 @@ export class ItemCard extends React.Component<Item> {
                                         <Heading size={4}>{this.props.name}</Heading>
                                         <Heading subtitle size={6}>
                                             {this.props.productor}
+                                            <p className="mt-2">
+                                                <a href="#">{this.props.cb}</a>
+                                            </p>
                                         </Heading>
                                     </Media.Item>
                                 </Media>
                             </Columns.Column>
                             <Columns.Column className="has-text-right">
-                                <div>
-                                    <a href="#">{this.props.cb}</a>
-                                </div>
                                 <UserMiniBox {...this.props.createdBy} prepend={'Inserito da'} />
                                 <div>
                                     il <time dateTime={this.submitted}>{this.submitted}</time>

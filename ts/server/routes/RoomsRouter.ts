@@ -17,7 +17,7 @@ export class RoomsRouter extends BaseRouter<RoomFromDB> {
         }
     );
 
-    protected async getListedValues(
+    protected async queryAll(
         userId: string,
         options?: FindOptions<RoomFromDB>
     ): Promise<Array<RoomFromDB>> {
@@ -31,5 +31,11 @@ export class RoomsRouter extends BaseRouter<RoomFromDB> {
                 options
             )
             .toArray();
+    }
+
+    protected async countAll(userId: string): Promise<number> {
+        this.log('countAll', userId);
+
+        return await this.collection.countDocuments({ ownedBy: userId });
     }
 }

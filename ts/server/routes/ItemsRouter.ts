@@ -27,39 +27,42 @@ export class ItemsRouter extends BaseRouter<ItemFromDB> {
         _userId: string,
         term: string,
         range: FalcorJsonGraph.Range
-    ): Promise<Array<ItemFromDB>> {
-        return await this.collection
-            .find(
-                {
-                    $or: [
-                        {
-                            name: {
-                                $regex: term,
-                                $options: 'i',
-                            },
+    ): Promise<[Array<ItemFromDB>, number]> {
+        const query: Filter<ItemFromDB> = {
+                $or: [
+                    {
+                        name: {
+                            $regex: term,
+                            $options: 'i',
                         },
-                        {
-                            productor: {
-                                $regex: term,
-                                $options: 'i',
-                            },
-                        },
-                        {
-                            cb: {
-                                $regex: term,
-                                $options: 'i',
-                            },
-                        },
-                    ],
-                } as Filter<ItemFromDB>,
-                {
-                    projection: {
-                        _id: 1,
                     },
-                    skip: range.from,
-                    limit: range.to + 1,
-                }
-            )
-            .toArray();
+                    {
+                        productor: {
+                            $regex: term,
+                            $options: 'i',
+                        },
+                    },
+                    {
+                        cb: {
+                            $regex: term,
+                            $options: 'i',
+                        },
+                    },
+                ],
+            },
+            options = {
+                projection: {
+                    _id: 1,
+                },
+                skip: range.from,
+                limit: range.to - range.from + 1,
+            };
+
+        this.log(`Searching for items with query: ${JSON.stringify(query)}`, options);
+
+        return await Promise.all([
+            this.collection.find(query, options).toArray(),
+            this.collection.countDocuments(query),
+        ]);
     }
 }

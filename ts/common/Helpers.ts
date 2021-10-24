@@ -7,15 +7,14 @@ export function clone<T>(obj: T): T {
 
 export function keyValuedResultsToArray<T>(dict: KeyValueResults<T>): T[] {
     const keys = Object.keys(dict ?? {}).filter(
-        (key) => /^[^$]/.test(key) && dict[key] != null
+        // (key) => /^[^$]/.test(key) && dict[key] != null
+        (key) => dict[key] && `${+key}` === key
     );
 
     return keys.map((key) => dict[key] as T);
 }
 
-export function identificablesToObject(
-    items: Array<IdentificableDoc>
-): Document {
+export function identificablesToObject(items: Array<IdentificableDoc>): Document {
     return items.reduce<Document>((acc, item) => {
         acc[item._id] = item;
         return acc;

@@ -8,7 +8,7 @@ export class ItemVotesRouter extends BaseRouter<ItemVoteFromDB> {
         voteCount: 1,
     });
 
-    protected async getValuesByID(
+    protected async queryByID(
         userId: string,
         ids: Array<string>,
         options?: FindOptions<ItemVoteFromDB>

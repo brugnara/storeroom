@@ -42,20 +42,22 @@ export class StockRoutes extends BaseRouter<StockFromDB> {
         _userId: string,
         roomId: string,
         range: FalcorJsonGraph.Range
-    ): Promise<Array<StockFromDB>> {
-        return await this.collection
-            .find(
-                {
-                    roomId,
-                } as Filter<StockFromDB>,
-                {
+    ): Promise<[Array<StockFromDB>, number]> {
+        const query: Filter<StockFromDB> = { roomId };
+
+        this.log('searchItems', query);
+
+        return await Promise.all([
+            this.collection
+                .find(query, {
                     projection: {
                         _id: 1,
                     },
                     skip: range.from,
-                    limit: range.to + 1,
-                }
-            )
-            .toArray();
+                    limit: range.to - range.from + 1,
+                })
+                .toArray(),
+            this.collection.countDocuments(query),
+        ]);
     }
 }

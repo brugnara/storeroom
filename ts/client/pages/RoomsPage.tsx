@@ -15,13 +15,16 @@ export class RoomsPage extends BUSLayer<{}, RoomsState> {
     state: RoomsState = { rooms: [] };
 
     async componentDidMount() {
-        const roomsFetched = await this.model.get<ListGetter<Room>>([
-                'rooms',
-                'list',
-                { to: 10 },
-                ['_id', 'name', 'submitted', 'ownedBy'],
-                ['_id', 'name'],
-            ]),
+        const roomsFetched = await this.model.get<ListGetter<Room>>(
+                [
+                    'rooms',
+                    'list',
+                    { to: 10 },
+                    ['_id', 'name', 'submitted', 'ownedBy'],
+                    ['_id', 'name'],
+                ],
+                'rooms.list.count'
+            ),
             rooms = keyValuedResultsToArray(roomsFetched.json.rooms.list);
 
         console.log(rooms);
@@ -36,9 +39,7 @@ export class RoomsPage extends BUSLayer<{}, RoomsState> {
                     return (
                         <Link key={room._id} to={`/rooms/${room._id}`}>
                             {room.name}
-                            <FontAwesomeIcon
-                                icon={room.starred ? faStar : farStar}
-                            />
+                            <FontAwesomeIcon icon={room.starred ? faStar : farStar} />
                         </Link>
                     );
                 })}
