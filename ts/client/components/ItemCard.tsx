@@ -2,16 +2,43 @@ import React from 'react';
 import { Card, Columns, Content, Heading, Media } from 'react-bulma-components';
 import { Item } from '../../common/Types';
 import { format } from 'date-fns';
-import { UserMiniBox } from './UserMiniBox';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBarcode } from '@fortawesome/free-solid-svg-icons';
 
 export class ItemCard extends React.Component<Item> {
     get submitted(): string {
         return format(new Date(this.props.submitted), 'dd/MM/yyyy');
     }
 
+    renderMoreInfo(): React.ReactNode {
+        return null;
+
+        return (
+            <>
+                <div>
+                    il <time dateTime={this.submitted}>{this.submitted}</time>
+                </div>
+                <div>{this.props.votes?.voteCount ?? 0} voti</div>
+            </>
+        );
+    }
+
+    renderCB(): React.ReactNode {
+        if (isNaN(+this.props.cb)) {
+            return null;
+        }
+
+        return (
+            <span>
+                <FontAwesomeIcon icon={faBarcode} className="mr-2" />
+                {this.props.cb}
+            </span>
+        );
+    }
+
     render(): React.ReactNode {
         return (
-            <Card>
+            <Card className="mb-2">
                 <Card.Content>
                     <Content>
                         <Columns>
@@ -21,20 +48,12 @@ export class ItemCard extends React.Component<Item> {
                                         <Heading size={4}>{this.props.name}</Heading>
                                         <Heading subtitle size={6}>
                                             {this.props.productor}
-                                            <p className="mt-2">
-                                                <a href="#">{this.props.cb}</a>
-                                            </p>
                                         </Heading>
+                                        {this.renderCB()}
                                     </Media.Item>
                                 </Media>
                             </Columns.Column>
-                            <Columns.Column className="has-text-right">
-                                <UserMiniBox {...this.props.createdBy} prepend={'Inserito da'} />
-                                <div>
-                                    il <time dateTime={this.submitted}>{this.submitted}</time>
-                                </div>
-                                <div>{this.props.votes?.voteCount ?? 0} voti</div>
-                            </Columns.Column>
+                            <Columns.Column className="has-text-right">comandi</Columns.Column>
                         </Columns>
                     </Content>
                 </Card.Content>
